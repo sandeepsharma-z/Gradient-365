@@ -7192,6 +7192,189 @@ a      { color: inherit; text-decoration: none; }
   font-weight: 700;
 }
 
+.cafe-profile-page {
+  padding-bottom: 90px;
+}
+
+.cafe-profile-hero {
+  min-height: 150px;
+  margin-bottom: 18px;
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(255, 255, 255, 0.7)),
+    var(--surface);
+}
+
+.cafe-profile-avatar {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff9d00, #ff5a00);
+  box-shadow: 0 18px 40px -24px rgba(255, 90, 0, 0.9);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.cafe-profile-hero span,
+.cafe-profile-hero p,
+.cafe-profile-hero b {
+  display: block;
+}
+
+.cafe-profile-hero span {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cafe-profile-hero h2 {
+  margin: 6px 0 0;
+  color: var(--ink);
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.cafe-profile-hero p {
+  margin: 8px 0 0;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.cafe-profile-hero b {
+  width: fit-content;
+  margin-top: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-size: 11px;
+}
+
+.cafe-profile-panel {
+  padding: 18px;
+}
+
+.cafe-profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cafe-profile-form-grid label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cafe-profile-form-grid label.wide,
+.cafe-profile-form-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.cafe-profile-form-grid input {
+  width: 100%;
+  height: 44px;
+  padding: 0 13px;
+  border-radius: 12px;
+  color: var(--ink);
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
+  outline: 0;
+  font: inherit;
+}
+
+.cafe-profile-form-grid input:disabled {
+  color: var(--ink-3);
+  opacity: 1;
+}
+
+.cafe-profile-form-grid input:focus {
+  border-color: rgba(255, 107, 0, 0.45);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.09);
+}
+
+.cafe-profile-actions-row {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cafe-profile-actions-row button,
+.cafe-profile-action,
+.cafe-profile-logout {
+  min-height: 40px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  color: var(--ink-2);
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cafe-profile-actions-row button:last-child,
+.cafe-profile-page .cafe-ops-topbar button:first-of-type {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #ff9d00, #ff5a00);
+  box-shadow: 0 16px 34px -22px rgba(255, 90, 0, 0.8);
+}
+
+.cafe-profile-action.danger,
+.cafe-profile-logout {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: rgba(200, 61, 78, 0.14);
+}
+
+.cafe-profile-session-card {
+  min-height: 130px;
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  border-radius: 16px;
+  color: var(--ink-2);
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
+}
+
+.cafe-profile-session-card svg {
+  color: var(--accent);
+}
+
+.cafe-profile-session-card strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.cafe-profile-session-card span {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.cafe-profile-panel .cafe-profile-logout {
+  width: 100%;
+  margin-top: 12px;
+}
+
 .supplier-enquiry-card button:nth-child(3),
 .supplier-enquiry-card button:nth-child(4) {
   color: #fff;
