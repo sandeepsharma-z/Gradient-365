@@ -48,6 +48,7 @@ const NAV_ITEMS = [
   { label: 'Reports', icon: 'reports', href: '/reports' },
   { label: 'Settings', icon: 'settings', href: '/settings' },
   { label: 'Supplier Hub', icon: 'supplier', href: '/supplier-dashboard' },
+  { label: 'Supplier Orders', icon: 'orders', href: '/supplier-orders' },
   { label: 'Supplier Catalogue', icon: 'menu', href: '/supplier-catalogue' },
   { label: 'Supplier Stock', icon: 'inventory', href: '/supplier-stock' },
   { label: 'Enquiries', icon: 'marketing', href: '/supplier-enquiries' },

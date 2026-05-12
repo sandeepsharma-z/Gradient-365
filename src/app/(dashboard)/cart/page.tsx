@@ -37,6 +37,7 @@ export default function CartPage() {
   }))
 
   const unavailablePreview = useMemo(() => items.filter((_, index) => index === 1 && items.length > 2), [items])
+  const availablePreview = useMemo(() => items.filter(item => !unavailablePreview.some(unavailable => unavailable.catalogue_item_id === item.catalogue_item_id)), [items, unavailablePreview])
 
   async function handlePlaceOrder(supplierId: string, acceptPartial = false) {
     const groupItems = items.filter(i => i.supplier_account_id === supplierId)
@@ -144,15 +145,34 @@ export default function CartPage() {
       {step === 'encrypted' && <section className="cafe-card cafe-flow-state"><Icon name="lock" size={42} /><h2>Encrypting order</h2><p>AES-256 payload prepared over TLS 1.3. Supplier inventory check is starting.</p></section>}
 
       {step === 'partial' && (
-        <section className="cafe-card cafe-flow-state warn">
-          <Icon name="warn" size={42} />
-          <h2>Partial confirmation</h2>
-          <p>Some items need supplier confirmation. Accept available items or trigger urgent alternate supplier search.</p>
-          <div className="cafe-flow-actions">
-            <button onClick={() => handlePlaceOrder(supplierIds[0], true)}>Accept Partial</button>
-            <Link href="/urgent-search">Find Alternate Supplier</Link>
-            <button onClick={() => setStep('review')}>Cancel</button>
+        <section className="cafe-flow-grid">
+          <div className="cafe-card cafe-flow-state warn">
+            <Icon name="warn" size={42} />
+            <h2>Partial confirmation</h2>
+            <p>Supplier can fulfil available items now. Unavailable items have ETA and can trigger urgent alternate supplier search.</p>
+            <div className="cafe-partial-lists">
+              <div>
+                <strong>Available now</strong>
+                {availablePreview.map(item => <span key={item.catalogue_item_id} className="ok"><Icon name="check" size={13} />{item.name} - {item.quantity} {item.unit}</span>)}
+              </div>
+              <div>
+                <strong>Unavailable + ETA</strong>
+                {unavailablePreview.map(item => <span key={item.catalogue_item_id} className="warn"><Icon name="warn" size={13} />{item.name} - ETA 24 May</span>)}
+              </div>
+            </div>
+            <div className="cafe-flow-actions">
+              <button onClick={() => handlePlaceOrder(supplierIds[0], true)}>Accept Partial</button>
+              <Link href={`/urgent-search?q=${encodeURIComponent(unavailablePreview[0]?.name || 'Hazelnut Syrup')}`}>Find Alternate Supplier</Link>
+              <button onClick={() => setStep('review')}>Cancel Order</button>
+            </div>
           </div>
+          <aside className="cafe-card cafe-flow-summary">
+            <h2>Cafe decision</h2>
+            <p>Accept partial to continue delivery for available items, or search alternate supplier for unavailable items before confirming.</p>
+            <div><span>Available items</span><b>{availablePreview.length}</b></div>
+            <div><span>Unavailable items</span><b>{unavailablePreview.length}</b></div>
+            <Link href="/orders">Raise complaint / reschedule</Link>
+          </aside>
         </section>
       )}
 

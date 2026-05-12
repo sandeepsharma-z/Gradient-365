@@ -53,6 +53,7 @@ const demoItems: CatalogueItem[] = [
   { id: 104, name: 'Espresso Beans 1kg', unit: 'kg', price_per_unit: '1200', min_order_quantity: 2, supplier_account_id: 'SUP-03', supplier_name: 'Blue Tokai Roasters', category: 'Coffee', description: 'Premium beans for espresso bar.', is_available: true, stock_status: 'in', brand: 'Lavazza' },
   { id: 105, name: 'Robusta Powder 500g', unit: 'pack', price_per_unit: '480', min_order_quantity: 6, supplier_account_id: 'SUP-04', supplier_name: 'Bean Basket', category: 'Coffee', description: 'Low stock: 8 packs remaining.', is_available: true, stock_status: 'low', brand: 'Bru' },
   { id: 106, name: 'Full Cream Milk 1L', unit: 'litre', price_per_unit: '68', min_order_quantity: 20, supplier_account_id: 'SUP-05', supplier_name: 'Nandini Dairy Kitchen', category: 'Dairy', description: 'Fresh full cream milk for daily cafe prep.', is_available: true, stock_status: 'in', brand: 'Amul' },
+  { id: 107, name: 'Fresh Cream 200ml', unit: 'pack', price_per_unit: '55', min_order_quantity: 12, supplier_account_id: 'SUP-05', supplier_name: 'Nandini Dairy Kitchen', category: 'Dairy', description: 'Back in stock on 24 May. Pre-order or set reminder.', is_available: true, stock_status: 'back', brand: 'Amul' },
   { id: 201, name: 'Frappe Base 1kg', unit: 'kg', price_per_unit: '940', min_order_quantity: 3, supplier_account_id: 'SUP-06', supplier_name: 'Caprimo Foods', category: 'Dish-wise', description: 'Cold Coffee > Frappe Base.', is_available: true, stock_status: 'in', brand: 'Caprimo', dish: 'Cold Coffee', subcategory: 'Frappe Base' },
   { id: 202, name: 'Frappe Mix 800g', unit: 'pack', price_per_unit: '760', min_order_quantity: 4, supplier_account_id: 'SUP-01', supplier_name: 'Monin India', category: 'Dish-wise', description: 'Cold Coffee > Frappe Base. Currently OOS.', is_available: false, stock_status: 'out', brand: 'Monin', dish: 'Cold Coffee', subcategory: 'Frappe Base' },
   { id: 203, name: 'Penne 500g', unit: 'pack', price_per_unit: '180', min_order_quantity: 10, supplier_account_id: 'SUP-07', supplier_name: 'Barilla Partner', category: 'Dish-wise', description: 'Pasta > Pasta Base.', is_available: true, stock_status: 'in', brand: 'Barilla', dish: 'Pasta', subcategory: 'Pasta Base' },
@@ -170,6 +171,10 @@ export default function CataloguePage() {
       setNotice(`${item.name} is out of stock. Use urgent search to find alternate suppliers.`)
       return
     }
+    if (item.stock_status === 'back') {
+      setNotice(`Pre-order reminder set for ${item.name}. Supplier restock ETA is 24 May.`)
+      return
+    }
     addItem({
       id: item.id,
       catalogue_item_id: item.id,
@@ -268,6 +273,8 @@ export default function CataloguePage() {
                     <small>Min order {item.min_order_quantity || 1} {item.unit}</small>
                     {item.stock_status === 'out' || item.is_available === false ? (
                       <Link href={`/urgent-search?q=${encodeURIComponent(item.name)}`}>Urgent Search</Link>
+                    ) : item.stock_status === 'back' ? (
+                      <button onClick={() => addToCart(item)}>Pre-order</button>
                     ) : (
                       <button onClick={() => addToCart(item)}>Add to Cart</button>
                     )}

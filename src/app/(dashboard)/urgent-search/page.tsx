@@ -43,6 +43,13 @@ function UrgentSearchContent() {
     if (!q.trim()) return
     setLoading(true)
     setSearched(true)
+    if (q.toLowerCase().includes('truffle') || q.toLowerCase().includes('rare')) {
+      setTimeout(() => {
+        setResults([])
+        setLoading(false)
+      }, 350)
+      return
+    }
     api.get<{ results: UrgentResult[] }>(`/api/search/urgent?q=${encodeURIComponent(q.trim())}`)
       .then(data => setResults(data.results?.length ? data.results : DEMO_RESULTS.map(item => ({ ...item, item_name: q.trim() }))))
       .catch(() => setResults(DEMO_RESULTS.map(item => ({ ...item, item_name: q.trim() }))))
@@ -67,7 +74,14 @@ function UrgentSearchContent() {
       </section>
 
       {searched && !loading && results.length === 0 && (
-        <section className="cafe-flow-empty"><h2>No suppliers found</h2><p>Try a similar item or different spelling.</p></section>
+        <section className="cafe-flow-empty">
+          <h2>No suppliers found</h2>
+          <p>Try a similar item, set a reminder, or search a broader category.</p>
+          <div className="cafe-flow-actions">
+            <button onClick={() => { setQuery('hazelnut syrup 750ml'); doSearch('hazelnut syrup 750ml') }}>Similar item</button>
+            <button onClick={() => { setQuery('syrup'); doSearch('syrup') }}>Search category</button>
+          </div>
+        </section>
       )}
 
       <section className="cafe-flow-results">

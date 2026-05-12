@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 
-type IconName = 'search' | 'plus' | 'box' | 'cart' | 'chat' | 'truck' | 'chart' | 'warn' | 'arrow'
+type IconName = 'search' | 'plus' | 'box' | 'cart' | 'chat' | 'truck' | 'chart' | 'warn' | 'arrow' | 'lock'
 
 function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, React.ReactNode> = {
@@ -15,6 +15,7 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
     chart: <><path d="M4 19V5" /><path d="M4 19h16" /><path d="m7 15 4-4 3 3 5-7" /></>,
     warn: <><path d="M12 9v4" /><path d="M12 17h.01" /><path d="M10.3 3.8 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z" /></>,
     arrow: <><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></>,
+    lock: <><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>,
   }
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
@@ -38,7 +39,7 @@ export default function SupplierDashboardPage() {
         <div><h1>Supplier Hub</h1><p>Manage catalogue, MRP, private cafe deals, stock status, enquiries, and delivery fulfilment.</p></div>
         <label><Icon name="search" size={19} /><input placeholder="Search product, cafe, order..." /></label>
         <Link href="/supplier-catalogue"><Icon name="plus" /> Add Product</Link>
-        <Link href="/supplier-enquiries"><Icon name="chat" /> Enquiries</Link>
+        <Link href="/supplier-orders"><Icon name="lock" /> Orders</Link>
       </header>
 
       <section className="cafe-ops-stats">
@@ -55,7 +56,7 @@ export default function SupplierDashboardPage() {
             <button>Today</button>
             <button>All cafes</button>
             <div />
-            <Link className="cafe-ops-small-btn" href="/supplier-stock">Update Stock</Link>
+            <Link className="cafe-ops-small-btn" href="/supplier-orders">Open Orders</Link>
           </div>
           <div className="cafe-ops-list">
             {products.map(item => (

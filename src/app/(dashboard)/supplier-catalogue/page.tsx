@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-type Product = { name: string; brand: string; mrp: string; category: string; type: 'A' | 'B'; dish?: string; stock: 'In Stock' | 'Low Stock' | 'Out of Stock' }
+type Product = { name: string; brand: string; mrp: string; category: string; type: 'A' | 'B'; dish?: string; stock: 'In Stock' | 'Low Stock' | 'Out of Stock' | 'Discontinued'; image?: string }
 type IconName = 'search' | 'plus' | 'filter' | 'star' | 'box'
 
 function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
@@ -38,14 +38,38 @@ export default function SupplierCataloguePage() {
   const [type, setType] = useState<'A' | 'B'>('A')
   const [products, setProducts] = useState(INITIAL)
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ name: '', brand: '', mrp: '', category: '', dish: '' })
+  const [editing, setEditing] = useState<Product | null>(null)
+  const [form, setForm] = useState({ name: '', brand: '', mrp: '', category: '', dish: '', image: '' })
   const visible = products.filter(product => product.type === type)
 
-  function addProduct() {
+  function openAdd() {
+    setEditing(null)
+    setForm({ name: '', brand: '', mrp: '', category: '', dish: '', image: '' })
+    setShowModal(true)
+  }
+
+  function openEdit(product: Product) {
+    setEditing(product)
+    setForm({ name: product.name, brand: product.brand, mrp: product.mrp, category: product.category, dish: product.dish || '', image: product.image || '' })
+    setShowModal(true)
+  }
+
+  function saveProduct() {
     if (!form.name.trim()) return
-    setProducts(prev => [{ ...form, mrp: form.mrp || 'Rs 0', type, stock: 'In Stock' }, ...prev])
-    setForm({ name: '', brand: '', mrp: '', category: '', dish: '' })
+    if (editing) {
+      setProducts(prev => prev.map(product => product.name === editing.name && product.type === editing.type ? { ...product, ...form, mrp: form.mrp || 'Rs 0' } : product))
+    } else {
+      setProducts(prev => [{ ...form, mrp: form.mrp || 'Rs 0', type, stock: 'In Stock' }, ...prev])
+    }
     setShowModal(false)
+  }
+
+  function markDiscontinued(product: Product) {
+    setProducts(prev => prev.map(item => item.name === product.name && item.type === product.type ? { ...item, stock: 'Discontinued' } : item))
+  }
+
+  function removeProduct(product: Product) {
+    setProducts(prev => prev.filter(item => !(item.name === product.name && item.type === product.type)))
   }
 
   return (
@@ -53,7 +77,7 @@ export default function SupplierCataloguePage() {
       <header className="cafe-menu-topbar">
         <div><h1>Supplier Catalogue</h1><p>Build Type A simple categories or Type B dish-wise catalogue. MRP stays visible to cafes.</p></div>
         <label className="cafe-menu-search"><Icon name="search" size={19} /><input placeholder="Search product, category, brand..." /></label>
-        <button className="cafe-menu-cart-link supplier-top-action" onClick={() => setShowModal(true)}><Icon name="plus" /> Add Product</button>
+        <button className="cafe-menu-cart-link supplier-top-action" onClick={openAdd}><Icon name="plus" /> Add Product</button>
       </header>
 
       <section className="cafe-menu-stats">
@@ -75,17 +99,17 @@ export default function SupplierCataloguePage() {
           <button><Icon name="star" size={15} /> Published</button>
           <div />
           <span>{visible.length} items</span>
-          <button onClick={() => setShowModal(true)}><Icon name="plus" size={15} /> Add Product</button>
+          <button onClick={openAdd}><Icon name="plus" size={15} /> Add Product</button>
         </div>
         <div className="cafe-menu-grid">
           {visible.map((product, index) => (
             <article className="cafe-menu-card" key={`${product.type}-${product.name}`}>
-              <div className="cafe-menu-image"><img src={images[index % images.length]} alt="" /><span>{product.type === 'A' ? product.category : product.dish}</span></div>
+              <div className="cafe-menu-image"><img src={product.image || images[index % images.length]} alt="" /><span>{product.type === 'A' ? product.category : product.dish}</span></div>
               <div className="cafe-menu-card-body">
                 <div><h3>{product.name}</h3><p>{product.brand} - {product.type === 'A' ? product.category : product.category}. Cafes see MRP, deal price stays private.</p></div>
                 <div className="cafe-menu-meta"><span>{product.stock}</span><b>MRP {product.mrp}</b></div>
-                <div className="cafe-flow-badges"><span className={product.stock === 'Out of Stock' ? 'danger' : product.stock === 'Low Stock' ? 'warn' : 'ok'}>{product.stock}</span><button>Private deal</button></div>
-                <div className="cafe-menu-actions"><small>Visible to linked cafes</small><button>Edit Item</button></div>
+                <div className="cafe-flow-badges"><span className={product.stock === 'Out of Stock' || product.stock === 'Discontinued' ? 'danger' : product.stock === 'Low Stock' ? 'warn' : 'ok'}>{product.stock}</span><button>Private deal</button></div>
+                <div className="cafe-menu-actions supplier-card-actions"><small>{product.stock === 'Discontinued' ? 'Hidden from cafes' : 'Visible to linked cafes'}</small><button onClick={() => openEdit(product)}>Edit</button><button onClick={() => markDiscontinued(product)}>Discontinue</button><button onClick={() => removeProduct(product)}>Remove</button></div>
               </div>
             </article>
           ))}
@@ -95,15 +119,17 @@ export default function SupplierCataloguePage() {
       {showModal && (
         <div className="cafe-ops-modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="cafe-ops-modal" onClick={event => event.stopPropagation()}>
-            <div className="cafe-ops-modal-head"><div><span>Catalogue builder</span><h2>Add {type === 'A' ? 'Category Product' : 'Dish-wise Product'}</h2></div><button onClick={() => setShowModal(false)}>x</button></div>
+            <div className="cafe-ops-modal-head"><div><span>Catalogue builder</span><h2>{editing ? 'Edit Product' : `Add ${type === 'A' ? 'Category Product' : 'Dish-wise Product'}`}</h2></div><button onClick={() => setShowModal(false)}>x</button></div>
             <div className="cafe-ops-form-grid">
               {type === 'B' && <label>Dish<input value={form.dish} onChange={event => setForm({ ...form, dish: event.target.value })} placeholder="Cold Coffee" /></label>}
               <label>Category<input value={form.category} onChange={event => setForm({ ...form, category: event.target.value })} placeholder={type === 'A' ? 'Syrups' : 'Frappe Base'} /></label>
               <label>Product<input value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} placeholder="Product name" /></label>
               <label>Brand<input value={form.brand} onChange={event => setForm({ ...form, brand: event.target.value })} placeholder="Brand / Company" /></label>
-              <label className="wide">MRP<input value={form.mrp} onChange={event => setForm({ ...form, mrp: event.target.value })} placeholder="Rs 850" /></label>
+              <label>MRP<input value={form.mrp} onChange={event => setForm({ ...form, mrp: event.target.value })} placeholder="Rs 850" /></label>
+              <label className="wide">Product image URL<input value={form.image} onChange={event => setForm({ ...form, image: event.target.value })} placeholder="https://images.unsplash.com/..." /></label>
+              {form.image && <div className="supplier-image-preview"><img src={form.image} alt="" /><span>Image preview</span></div>}
             </div>
-            <div className="cafe-ops-modal-actions"><button onClick={() => setShowModal(false)}>Cancel</button><button onClick={addProduct}>Publish Catalogue</button></div>
+            <div className="cafe-ops-modal-actions"><button onClick={() => setShowModal(false)}>Cancel</button><button onClick={saveProduct}>{editing ? 'Save Changes' : 'Publish Catalogue'}</button></div>
           </div>
         </div>
       )}
