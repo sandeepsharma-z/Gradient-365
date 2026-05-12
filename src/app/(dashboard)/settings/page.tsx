@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 
 type IconName = 'search' | 'check' | 'user' | 'bell' | 'lock' | 'store' | 'save'
 
@@ -24,13 +25,34 @@ const GROUPS = [
 ]
 
 export default function SettingsPage() {
+  const [groups, setGroups] = useState(GROUPS)
+  const [saved, setSaved] = useState(false)
+  const [editing, setEditing] = useState<{ groupIndex: number; rowIndex?: number } | null>(null)
+  const [editValue, setEditValue] = useState('')
+
+  function openEdit(groupIndex: number, rowIndex?: number) {
+    setEditing({ groupIndex, rowIndex })
+    setEditValue(rowIndex === undefined ? groups[groupIndex].status : groups[groupIndex].rows[rowIndex])
+  }
+
+  function saveEdit() {
+    if (!editing) return
+    setGroups(prev => prev.map((group, groupIndex) => {
+      if (groupIndex !== editing.groupIndex) return group
+      if (editing.rowIndex === undefined) return { ...group, status: editValue || group.status }
+      return { ...group, rows: group.rows.map((row, rowIndex) => rowIndex === editing.rowIndex ? (editValue || row) : row) }
+    }))
+    setSaved(false)
+    setEditing(null)
+  }
+
   return (
     <main className="cafe-ops-page">
       <header className="cafe-ops-topbar">
         <div><h1>Settings</h1><p>Workspace defaults, notifications, outlet rules, and account access.</p></div>
         <label><Icon name="search" size={19} /><input placeholder="Search settings..." /></label>
         <Link href="/profile"><Icon name="user" /> Profile</Link>
-        <button><Icon name="save" /> Save</button>
+        <button onClick={() => setSaved(true)}><Icon name="save" /> {saved ? 'Saved' : 'Save'}</button>
       </header>
 
       <section className="cafe-ops-stats">
@@ -42,10 +64,10 @@ export default function SettingsPage() {
 
       <section className="cafe-ops-grid settings">
         <div className="cafe-ops-settings-list">
-          {GROUPS.map(group => (
+          {groups.map((group, groupIndex) => (
             <div className="cafe-card cafe-ops-setting" key={group.title}>
-              <div className="cafe-ops-setting-head"><span><Icon name={group.icon} /></span><div><h2>{group.title}</h2><p>{group.status}</p></div><button>Edit</button></div>
-              {group.rows.map(row => <div className="cafe-ops-setting-row" key={row}><Icon name="check" size={15} /><span>{row}</span><button>Change</button></div>)}
+              <div className="cafe-ops-setting-head"><span><Icon name={group.icon} /></span><div><h2>{group.title}</h2><p>{group.status}</p></div><button onClick={() => openEdit(groupIndex)}>Edit</button></div>
+              {group.rows.map((row, rowIndex) => <div className="cafe-ops-setting-row" key={row}><Icon name="check" size={15} /><span>{row}</span><button onClick={() => openEdit(groupIndex, rowIndex)}>Change</button></div>)}
             </div>
           ))}
         </div>
@@ -62,6 +84,18 @@ export default function SettingsPage() {
           ].map(([label, href]) => <Link className="cafe-ops-mini" href={href} key={href}><Icon name="user" size={15} /><span>{label}</span></Link>)}
         </aside>
       </section>
+
+      {editing && (
+        <div className="cafe-ops-modal-backdrop" onClick={() => setEditing(null)}>
+          <div className="cafe-ops-modal" onClick={event => event.stopPropagation()}>
+            <div className="cafe-ops-modal-head"><div><span>Workspace setting</span><h2>{editing.rowIndex === undefined ? 'Edit Group' : 'Change Rule'}</h2></div><button onClick={() => setEditing(null)}>×</button></div>
+            <div className="cafe-ops-form-grid">
+              <label className="wide">Value<input value={editValue} onChange={event => setEditValue(event.target.value)} /></label>
+            </div>
+            <div className="cafe-ops-modal-actions"><button onClick={() => setEditing(null)}>Cancel</button><button onClick={saveEdit}>Apply</button></div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

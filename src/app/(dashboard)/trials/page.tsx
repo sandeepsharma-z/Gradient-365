@@ -72,6 +72,9 @@ function TrialsContent() {
   const statusParam = searchParams.get('status') ?? 'all'
   const [trials, setTrials] = useState<Trial[]>([])
   const [loading, setLoading] = useState(true)
+  const [showAddStaff, setShowAddStaff] = useState(false)
+  const [showShiftPlan, setShowShiftPlan] = useState(false)
+  const [newStaff, setNewStaff] = useState({ name: '', role: '', task: '' })
 
   useEffect(() => {
     setLoading(true)
@@ -93,6 +96,22 @@ function TrialsContent() {
     { icon: 'check' as IconName, label: 'Completed', value: completed, sub: 'Today' },
   ], [active, completed, pending, trials.length])
 
+  function addStaff() {
+    const name = newStaff.name.trim()
+    if (!name) return
+    setTrials(prev => [{
+      id: Date.now(),
+      product_name: newStaff.task.trim() || 'New shift task',
+      brand_name: `${name} - ${newStaff.role.trim() || 'Staff'}`,
+      status: 'active',
+      start_date: new Date().toISOString(),
+      end_date: '',
+      feedback_submitted: false,
+    }, ...prev])
+    setNewStaff({ name: '', role: '', task: '' })
+    setShowAddStaff(false)
+  }
+
   return (
     <main className="cafe-ops-page">
       <header className="cafe-ops-topbar">
@@ -101,8 +120,8 @@ function TrialsContent() {
           <p>Shift activity, team tasks, feedback, and floor ownership in one view.</p>
         </div>
         <label><Icon name="search" size={19} /><input placeholder="Search staff, role, task..." /></label>
-        <button><Icon name="calendar" /> Shift Plan</button>
-        <button><Icon name="plus" /> Add Staff</button>
+        <button onClick={() => setShowShiftPlan(true)}><Icon name="calendar" /> Shift Plan</button>
+        <button onClick={() => setShowAddStaff(true)}><Icon name="plus" /> Add Staff</button>
       </header>
 
       <section className="cafe-ops-stats">
@@ -147,6 +166,32 @@ function TrialsContent() {
           {['09:00 Barista setup', '10:30 Kitchen refill', '13:00 Floor reset'].map(item => <div className="cafe-ops-mini" key={item}><Icon name="clock" size={15} /><span>{item}</span></div>)}
         </aside>
       </section>
+
+      {showAddStaff && (
+        <div className="cafe-ops-modal-backdrop" onClick={() => setShowAddStaff(false)}>
+          <div className="cafe-ops-modal" onClick={event => event.stopPropagation()}>
+            <div className="cafe-ops-modal-head"><div><span>Staff setup</span><h2>Add Staff</h2></div><button onClick={() => setShowAddStaff(false)}>×</button></div>
+            <div className="cafe-ops-form-grid">
+              <label>Name<input value={newStaff.name} onChange={event => setNewStaff(prev => ({ ...prev, name: event.target.value }))} placeholder="Neha Sharma" /></label>
+              <label>Role<input value={newStaff.role} onChange={event => setNewStaff(prev => ({ ...prev, role: event.target.value }))} placeholder="Barista" /></label>
+              <label className="wide">Task<input value={newStaff.task} onChange={event => setNewStaff(prev => ({ ...prev, task: event.target.value }))} placeholder="Morning prep checklist" /></label>
+            </div>
+            <div className="cafe-ops-modal-actions"><button onClick={() => setShowAddStaff(false)}>Cancel</button><button onClick={addStaff}>Save Staff</button></div>
+          </div>
+        </div>
+      )}
+
+      {showShiftPlan && (
+        <div className="cafe-ops-modal-backdrop" onClick={() => setShowShiftPlan(false)}>
+          <div className="cafe-ops-modal" onClick={event => event.stopPropagation()}>
+            <div className="cafe-ops-modal-head"><div><span>Today</span><h2>Shift Plan</h2></div><button onClick={() => setShowShiftPlan(false)}>×</button></div>
+            <div className="cafe-ops-modal-list">
+              {['09:00 - Barista opening setup', '10:30 - Kitchen refill check', '13:00 - Cashier break coverage', '17:00 - Evening floor reset'].map(item => <div key={item}><Icon name="clock" size={15} /><span>{item}</span></div>)}
+            </div>
+            <div className="cafe-ops-modal-actions"><button onClick={() => setShowShiftPlan(false)}>Close</button></div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

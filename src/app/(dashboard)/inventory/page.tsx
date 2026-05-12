@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { useMemo, useState } from 'react'
 
 type IconName = 'search' | 'plus' | 'box' | 'warn' | 'truck' | 'chart' | 'filter' | 'refresh'
 
@@ -30,23 +30,58 @@ const STOCK_ITEMS = [
 const MOVEMENTS = ['06:42 Whole milk received +42 L', '08:10 Coffee beans issued -1.6 kg', '09:25 Brioche buns issued -28 pc', '10:05 Paper cups issued -120 pc']
 
 export default function InventoryPage() {
-  const critical = STOCK_ITEMS.filter(item => item.tone === 'danger').length
-  const low = STOCK_ITEMS.filter(item => item.tone === 'warn').length
+  const [items, setItems] = useState(STOCK_ITEMS)
+  const [movements, setMovements] = useState(MOVEMENTS)
+  const [showAddItem, setShowAddItem] = useState(false)
+  const [synced, setSynced] = useState(false)
+  const [newItem, setNewItem] = useState({ name: '', supplier: '', outlet: 'Indiranagar', onHand: '', threshold: '' })
+  const critical = items.filter(item => item.tone === 'danger').length
+  const low = items.filter(item => item.tone === 'warn').length
+
+  const stockValue = useMemo(() => `Rs ${(8.42 + items.length * 0.02).toFixed(2)}L`, [items.length])
+
+  function syncStock() {
+    setSynced(true)
+    setMovements(prev => [`${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} Stock synced successfully`, ...prev.slice(0, 4)])
+  }
+
+  function addItem() {
+    if (!newItem.name.trim()) return
+    setItems(prev => [{
+      sku: `INV-${String(Date.now()).slice(-4)}`,
+      name: newItem.name.trim(),
+      supplier: newItem.supplier.trim() || 'New Supplier',
+      outlet: newItem.outlet,
+      onHand: newItem.onHand.trim() || '0',
+      threshold: newItem.threshold.trim() || '0',
+      cover: '3.0 days',
+      fill: 76,
+      status: 'Healthy',
+      tone: 'ok',
+    }, ...prev])
+    setNewItem({ name: '', supplier: '', outlet: 'Indiranagar', onHand: '', threshold: '' })
+    setShowAddItem(false)
+  }
+
+  function reorder(sku: string) {
+    setItems(prev => prev.map(item => item.sku === sku ? { ...item, status: 'Draft created', tone: 'warn', fill: Math.max(item.fill, 65) } : item))
+    setMovements(prev => [`${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} Reorder draft created for ${sku}`, ...prev.slice(0, 4)])
+  }
 
   return (
     <main className="cafe-ops-page">
       <header className="cafe-ops-topbar">
         <div><h1>Inventory</h1><p>Live stock, low inventory alerts, reorder queues, and outlet movement.</p></div>
         <label><Icon name="search" size={19} /><input placeholder="Search SKU, supplier, outlet..." /></label>
-        <button><Icon name="refresh" /> Sync Stock</button>
-        <Link href="/catalogue"><Icon name="plus" /> Add Item</Link>
+        <button onClick={syncStock}><Icon name="refresh" /> {synced ? 'Synced' : 'Sync Stock'}</button>
+        <button onClick={() => setShowAddItem(true)}><Icon name="plus" /> Add Item</button>
       </header>
 
       <section className="cafe-ops-stats">
         <div className="cafe-card cafe-ops-stat"><span><Icon name="warn" /></span><div><p>Critical SKUs</p><strong>{critical}</strong><small>Reorder today</small></div></div>
         <div className="cafe-card cafe-ops-stat"><span><Icon name="box" /></span><div><p>Low Stock</p><strong>{low}</strong><small>Below buffer</small></div></div>
         <div className="cafe-card cafe-ops-stat"><span><Icon name="truck" /></span><div><p>Open Reorders</p><strong>7</strong><small>3 due before noon</small></div></div>
-        <div className="cafe-card cafe-ops-stat"><span><Icon name="chart" /></span><div><p>Stock Value</p><strong>Rs 8.42L</strong><small>At landed cost</small></div></div>
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="chart" /></span><div><p>Stock Value</p><strong>{stockValue}</strong><small>At landed cost</small></div></div>
       </section>
 
       <section className="cafe-ops-grid inventory">
@@ -56,7 +91,7 @@ export default function InventoryPage() {
             <table className="cafe-ops-table">
               <thead><tr><th>SKU</th><th>Item</th><th>Supplier</th><th>Outlet</th><th>On hand</th><th>Cover</th><th>Status</th><th>Action</th></tr></thead>
               <tbody>
-                {STOCK_ITEMS.map(item => (
+                {items.map(item => (
                   <tr key={item.sku}>
                     <td><b>{item.sku}</b></td>
                     <td><strong>{item.name}</strong><div className="cafe-ops-meter"><span style={{ width: `${item.fill}%` }} /></div></td>
@@ -65,7 +100,7 @@ export default function InventoryPage() {
                     <td>{item.onHand}<small>min {item.threshold}</small></td>
                     <td>{item.cover}</td>
                     <td><span className={`status ${item.tone}`}><span className="dot" />{item.status}</span></td>
-                    <td><button className="cafe-ops-small-btn">Reorder</button></td>
+                    <td><button className="cafe-ops-small-btn" onClick={() => reorder(item.sku)}>Reorder</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -77,9 +112,25 @@ export default function InventoryPage() {
           <div className="cafe-ops-panel-image"><img src="/images/cafe-inventory.jpg" alt="" /></div>
           <h2>Recent movement</h2>
           <p>Fastest drain is coffee bar inventory. Keep Arabica blend and cups in today&apos;s reorder basket.</p>
-          {MOVEMENTS.map(item => <div className="cafe-ops-mini" key={item}><Icon name="box" size={15} /><span>{item}</span></div>)}
+          {movements.map(item => <div className="cafe-ops-mini" key={item}><Icon name="box" size={15} /><span>{item}</span></div>)}
         </aside>
       </section>
+
+      {showAddItem && (
+        <div className="cafe-ops-modal-backdrop" onClick={() => setShowAddItem(false)}>
+          <div className="cafe-ops-modal" onClick={event => event.stopPropagation()}>
+            <div className="cafe-ops-modal-head"><div><span>Inventory setup</span><h2>Add Item</h2></div><button onClick={() => setShowAddItem(false)}>×</button></div>
+            <div className="cafe-ops-form-grid">
+              <label>Item name<input value={newItem.name} onChange={event => setNewItem(prev => ({ ...prev, name: event.target.value }))} placeholder="Cold brew bottle" /></label>
+              <label>Supplier<input value={newItem.supplier} onChange={event => setNewItem(prev => ({ ...prev, supplier: event.target.value }))} placeholder="Blue Tokai Roasters" /></label>
+              <label>Outlet<select value={newItem.outlet} onChange={event => setNewItem(prev => ({ ...prev, outlet: event.target.value }))}><option>Indiranagar</option><option>Koramangala</option><option>HSR Layout</option></select></label>
+              <label>On hand<input value={newItem.onHand} onChange={event => setNewItem(prev => ({ ...prev, onHand: event.target.value }))} placeholder="24 bottle" /></label>
+              <label className="wide">Threshold<input value={newItem.threshold} onChange={event => setNewItem(prev => ({ ...prev, threshold: event.target.value }))} placeholder="12 bottle" /></label>
+            </div>
+            <div className="cafe-ops-modal-actions"><button onClick={() => setShowAddItem(false)}>Cancel</button><button onClick={addItem}>Save Item</button></div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

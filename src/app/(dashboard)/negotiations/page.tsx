@@ -70,6 +70,9 @@ function NegotiationsContent() {
   const statusParam = searchParams.get('status') ?? 'all'
   const [items, setItems] = useState<Negotiation[]>([])
   const [loading, setLoading] = useState(true)
+  const [showNewCampaign, setShowNewCampaign] = useState(false)
+  const [period, setPeriod] = useState('This Week')
+  const [campaign, setCampaign] = useState({ name: '', code: '', budget: '' })
 
   useEffect(() => {
     setLoading(true)
@@ -90,13 +93,28 @@ function NegotiationsContent() {
     { icon: 'chart' as IconName, label: 'Budget', value: fmtAmount(String(budget)), sub: 'Tracked spend' },
   ], [accepted, budget, items.length, pending])
 
+  function createCampaign() {
+    const name = campaign.name.trim()
+    if (!name) return
+    setItems(prev => [{
+      id: Date.now(),
+      order_ref: campaign.code.trim() || `MKT-${String(Date.now()).slice(-4)}`,
+      supplier_name: name,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      last_offer: campaign.budget.trim().replace(/[^0-9.]/g, '') || '5000',
+    }, ...prev])
+    setCampaign({ name: '', code: '', budget: '' })
+    setShowNewCampaign(false)
+  }
+
   return (
     <main className="cafe-ops-page">
       <header className="cafe-ops-topbar">
         <div><h1>Marketing</h1><p>Plan cafe offers, supplier promos, campaign budgets, and social pushes.</p></div>
         <label><Icon name="search" size={19} /><input placeholder="Search campaign, promo, supplier..." /></label>
-        <button><Icon name="calendar" /> This Week</button>
-        <button><Icon name="plus" /> New Campaign</button>
+        <button onClick={() => setPeriod(period === 'This Week' ? 'This Month' : 'This Week')}><Icon name="calendar" /> {period}</button>
+        <button onClick={() => setShowNewCampaign(true)}><Icon name="plus" /> New Campaign</button>
       </header>
 
       <section className="cafe-ops-stats">
@@ -135,6 +153,20 @@ function NegotiationsContent() {
           {['Instagram story creative', 'Zomato banner slot', 'Loyalty SMS blast'].map(item => <div className="cafe-ops-mini" key={item}><Icon name="megaphone" size={15} /><span>{item}</span></div>)}
         </aside>
       </section>
+
+      {showNewCampaign && (
+        <div className="cafe-ops-modal-backdrop" onClick={() => setShowNewCampaign(false)}>
+          <div className="cafe-ops-modal" onClick={event => event.stopPropagation()}>
+            <div className="cafe-ops-modal-head"><div><span>Marketing setup</span><h2>New Campaign</h2></div><button onClick={() => setShowNewCampaign(false)}>×</button></div>
+            <div className="cafe-ops-form-grid">
+              <label>Campaign name<input value={campaign.name} onChange={event => setCampaign(prev => ({ ...prev, name: event.target.value }))} placeholder="Flat White Weekend Push" /></label>
+              <label>Campaign code<input value={campaign.code} onChange={event => setCampaign(prev => ({ ...prev, code: event.target.value }))} placeholder="MKT-FLAT20" /></label>
+              <label className="wide">Budget<input value={campaign.budget} onChange={event => setCampaign(prev => ({ ...prev, budget: event.target.value }))} placeholder="Rs 18,400" /></label>
+            </div>
+            <div className="cafe-ops-modal-actions"><button onClick={() => setShowNewCampaign(false)}>Cancel</button><button onClick={createCampaign}>Create Campaign</button></div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
