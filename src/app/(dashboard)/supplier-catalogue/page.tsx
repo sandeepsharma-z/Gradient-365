@@ -53,7 +53,7 @@ export default function SupplierCataloguePage() {
       <header className="cafe-menu-topbar">
         <div><h1>Supplier Catalogue</h1><p>Build Type A simple categories or Type B dish-wise catalogue. MRP stays visible to cafes.</p></div>
         <label className="cafe-menu-search"><Icon name="search" size={19} /><input placeholder="Search product, category, brand..." /></label>
-        <button className="cafe-menu-cart-link" onClick={() => setShowModal(true)}><Icon name="plus" /> Add Product</button>
+        <button className="cafe-menu-cart-link supplier-top-action" onClick={() => setShowModal(true)}><Icon name="plus" /> Add Product</button>
       </header>
 
       <section className="cafe-menu-stats">

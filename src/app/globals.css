@@ -7054,6 +7054,11 @@ a      { color: inherit; text-decoration: none; }
   background: linear-gradient(135deg, #ff9d00, #ff5a00);
 }
 
+.supplier-top-action {
+  min-width: 172px;
+  white-space: nowrap;
+}
+
 .supplier-enquiry-card button:nth-child(3),
 .supplier-enquiry-card button:nth-child(4) {
   color: #fff;
