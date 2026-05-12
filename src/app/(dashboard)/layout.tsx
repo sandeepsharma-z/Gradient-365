@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 interface User {
@@ -9,6 +9,7 @@ interface User {
   businessName?: string
   name?: string
   role: string
+  accountType?: string
 }
 
 
@@ -37,22 +38,22 @@ function Icon({ name, size = 19 }: { name: string; size?: number }) {
 }
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: 'dashboard', href: '/dashboard' },
-  { label: 'Orders', icon: 'orders', href: '/orders' },
-  { label: 'Menu', icon: 'menu', href: '/catalogue' },
-  { label: 'Reservations', icon: 'reservations', href: '/preorders' },
-  { label: 'Customers', icon: 'customers', href: '/suppliers' },
-  { label: 'Staff', icon: 'staff', href: '/trials' },
-  { label: 'Inventory', icon: 'inventory', href: '/inventory' },
-  { label: 'Marketing', icon: 'marketing', href: '/negotiations' },
-  { label: 'Reports', icon: 'reports', href: '/reports' },
-  { label: 'Settings', icon: 'settings', href: '/settings' },
-  { label: 'Supplier Hub', icon: 'supplier', href: '/supplier-dashboard' },
-  { label: 'Supplier Orders', icon: 'orders', href: '/supplier-orders' },
-  { label: 'Supplier Catalogue', icon: 'menu', href: '/supplier-catalogue' },
-  { label: 'Supplier Stock', icon: 'inventory', href: '/supplier-stock' },
-  { label: 'Enquiries', icon: 'marketing', href: '/supplier-enquiries' },
-  { label: 'Deliveries', icon: 'orders', href: '/supplier-deliveries' },
+  { label: 'Dashboard', icon: 'dashboard', href: '/dashboard', group: 'cafe' },
+  { label: 'Orders', icon: 'orders', href: '/orders', group: 'cafe' },
+  { label: 'Menu', icon: 'menu', href: '/catalogue', group: 'cafe' },
+  { label: 'Reservations', icon: 'reservations', href: '/preorders', group: 'cafe' },
+  { label: 'Customers', icon: 'customers', href: '/suppliers', group: 'cafe' },
+  { label: 'Staff', icon: 'staff', href: '/trials', group: 'cafe' },
+  { label: 'Inventory', icon: 'inventory', href: '/inventory', group: 'cafe' },
+  { label: 'Marketing', icon: 'marketing', href: '/negotiations', group: 'cafe' },
+  { label: 'Reports', icon: 'reports', href: '/reports', group: 'cafe' },
+  { label: 'Settings', icon: 'settings', href: '/settings', group: 'shared' },
+  { label: 'Supplier Hub', icon: 'supplier', href: '/supplier-dashboard', group: 'supplier' },
+  { label: 'Supplier Orders', icon: 'orders', href: '/supplier-orders', group: 'supplier' },
+  { label: 'Supplier Catalogue', icon: 'menu', href: '/supplier-catalogue', group: 'supplier' },
+  { label: 'Supplier Stock', icon: 'inventory', href: '/supplier-stock', group: 'supplier' },
+  { label: 'Enquiries', icon: 'marketing', href: '/supplier-enquiries', group: 'supplier' },
+  { label: 'Deliveries', icon: 'orders', href: '/supplier-deliveries', group: 'supplier' },
 ]
 
 const OUTLETS = [
@@ -61,24 +62,34 @@ const OUTLETS = [
   { name: 'HSR Layout', count: 15, img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=85' },
 ]
 
-const MOBILE_NAV = NAV_ITEMS.slice(0, 4)
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     const raw = localStorage.getItem('gradient365_user')
     if (!raw) {
-      setUser({ accountId: 'CAFE-2026-00001', businessName: 'Demo Cafe', name: 'Arjun Mehta', role: 'Admin' })
+      router.replace('/login')
       return
     }
 
     try { setUser(JSON.parse(raw)) } catch {
-      setUser({ accountId: 'CAFE-2026-00001', businessName: 'Demo Cafe', name: 'Arjun Mehta', role: 'Admin' })
+      localStorage.removeItem('gradient365_user')
+      router.replace('/login')
     }
-  }, [])
+  }, [router])
+
+  useEffect(() => {
+    if (!user) return
+    const type = (user.accountType || (user.role.toLowerCase().includes('supplier') ? 'supplier' : user.role.toLowerCase().includes('admin') ? 'admin' : 'cafe')).toLowerCase()
+    const isSupplierPath = pathname.startsWith('/supplier-')
+    const isSharedPath = pathname.startsWith('/settings') || pathname.startsWith('/profile')
+
+    if (type === 'supplier' && !isSupplierPath && !isSharedPath) router.replace('/supplier-dashboard')
+    if (type === 'cafe' && isSupplierPath) router.replace('/dashboard')
+  }, [pathname, router, user])
 
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard'
@@ -87,6 +98,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const displayName = user?.name || user?.businessName || 'Arjun Mehta'
   const role = user?.role || 'Admin'
+  const accountType = (user?.accountType || (role.toLowerCase().includes('supplier') ? 'supplier' : role.toLowerCase().includes('admin') ? 'admin' : 'cafe')).toLowerCase()
+  const visibleNav = NAV_ITEMS.filter(item => accountType === 'admin' || item.group === 'shared' || item.group === accountType)
+  const mobileNav = visibleNav.slice(0, 4)
+  const brandHref = accountType === 'supplier' ? '/supplier-dashboard' : '/dashboard'
+
+  if (!user) return <div className="cafe-shell"><div className="main-with-sidebar cafe-content" /></div>
 
   return (
     <div className={`cafe-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
@@ -100,13 +117,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         >
           <Icon name="chevron" size={17} />
         </button>
-        <Link href="/dashboard" className="cafe-brand" aria-label="Dashboard">
+        <Link href={brandHref} className="cafe-brand" aria-label="Dashboard">
           <img src="/images/gradient-logo.png" alt="Gradient 365" className="cafe-brand-logo" />
         </Link>
 
         <div className="cafe-sidebar-scroll">
           <nav className="cafe-nav">
-            {NAV_ITEMS.map(item => (
+            {visibleNav.map(item => (
               <Link key={item.href} href={item.href} className={`cafe-nav-link${isActive(item.href) ? ' active' : ''}`}>
                 <Icon name={item.icon} />
                 <span>{item.label}</span>
@@ -152,7 +169,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       <nav className="mobile-nav">
-        {MOBILE_NAV.map(item => (
+        {mobileNav.map(item => (
           <Link key={item.href} href={item.href} className={`mobile-nav-item${isActive(item.href) ? ' active' : ''}`}>
             <span className="mobile-nav-icon"><Icon name={item.icon} size={21} /></span>
             <span>{item.label}</span>

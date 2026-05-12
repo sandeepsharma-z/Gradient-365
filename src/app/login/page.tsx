@@ -3,13 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { api } from '@/lib/api'
 import { AuthPasswordToggleIcon } from '@/components/auth-password-toggle-icon'
-
-interface AuthResponse {
-  token: string
-  user: unknown
-}
 
 function AuthIcon({ name, size = 18 }: { name: 'arrow' | 'coffee' | 'shield' | 'spark'; size?: number }) {
   const paths = {
@@ -21,6 +15,30 @@ function AuthIcon({ name, size = 18 }: { name: 'arrow' | 'coffee' | 'shield' | '
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
+const DEMO_ACCOUNTS = [
+  {
+    label: 'Admin',
+    username: 'admin',
+    password: 'admin123',
+    redirect: '/dashboard',
+    user: { accountId: 'ADMIN-2026-00001', businessName: 'Gradient 365', name: 'Admin User', role: 'Admin', accountType: 'admin' },
+  },
+  {
+    label: 'Cafe',
+    username: 'cafe',
+    password: 'cafe123',
+    redirect: '/dashboard',
+    user: { accountId: 'CAFE-2026-00001', businessName: 'Demo Cafe', name: 'Arjun Mehta', role: 'Cafe Owner', accountType: 'cafe' },
+  },
+  {
+    label: 'Supplier',
+    username: 'supplier',
+    password: 'supplier123',
+    redirect: '/supplier-dashboard',
+    user: { accountId: 'SUPP-2026-00001', businessName: 'Monin India Supply', name: 'Rohan Das', role: 'Supplier Admin', accountType: 'supplier' },
+  },
+]
+
 export default function LoginPage() {
   const router = useRouter()
   const [accountId, setAccountId] = useState('')
@@ -28,30 +46,45 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [failedAttempts, setFailedAttempts] = useState(0)
+  const locked = failedAttempts >= 3
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (loading) return
+    if (loading || locked) return
     setLoading(true)
     setError('')
-    try {
-      const res = await api.post<AuthResponse>('/api/auth/login', {
-        accountId: accountId.trim().toUpperCase(),
-        password,
-      })
-      localStorage.setItem('gradient365_token', res.token)
-      localStorage.setItem('gradient365_user', JSON.stringify(res.user))
-      router.push('/dashboard')
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Login failed'
-      setError(message.toLowerCase().includes('not verified') ? 'Your email is not verified. Please check your inbox and click the verification link.' : message)
+    const entered = accountId.trim().toLowerCase()
+    const match = DEMO_ACCOUNTS.find(account =>
+      (account.username === entered || account.user.accountId.toLowerCase() === entered) &&
+      account.password === password
+    )
+
+    window.setTimeout(() => {
+      if (match) {
+        localStorage.setItem('gradient365_token', `demo-${match.username}-token`)
+        localStorage.setItem('gradient365_user', JSON.stringify(match.user))
+        router.push(match.redirect)
+        return
+      }
+
+      const nextAttempts = failedAttempts + 1
+      setFailedAttempts(nextAttempts)
+      setError(nextAttempts >= 3 ? 'Account locked after 3 failed attempts. Reset via email/phone to continue.' : `Invalid credentials. ${3 - nextAttempts} attempt${3 - nextAttempts === 1 ? '' : 's'} left.`)
       setLoading(false)
-    }
+    }, 350)
   }
 
-  function enterDemo() {
-    localStorage.setItem('gradient365_user', JSON.stringify({ accountId: 'CAFE-2026-00001', businessName: 'Demo Cafe', name: 'Arjun Mehta', role: 'Admin' }))
-    router.push('/dashboard')
+  function fillDemo(index: number) {
+    const demo = DEMO_ACCOUNTS[index]
+    setAccountId(demo.username)
+    setPassword(demo.password)
+    setError('')
+  }
+
+  function resetLock() {
+    setFailedAttempts(0)
+    setError('Reset link sent to registered email/phone. Demo lock cleared.')
   }
 
   return (
@@ -71,18 +104,17 @@ export default function LoginPage() {
         </div>
 
         <div className="cafe-auth-card">
-          <Link href="/dashboard" className="cafe-auth-skip">Skip to dashboard <AuthIcon name="arrow" size={15} /></Link>
           <div className="cafe-auth-brand">
             <img src="/images/gradient-logo.png" alt="" />
             <span>Gradient 365</span>
           </div>
           <h2>Welcome back</h2>
-          <p>Sign in to manage today&apos;s cafe flow.</p>
+          <p>Sign in with admin, cafe, or supplier demo credentials.</p>
 
           <form onSubmit={handleSubmit} className="cafe-auth-form">
             <label>
-              Account ID
-              <input type="text" value={accountId} onChange={e => setAccountId(e.target.value)} placeholder="CAFE-2026-00001" required />
+              Username / Account ID
+              <input type="text" value={accountId} onChange={e => setAccountId(e.target.value)} placeholder="admin / cafe / supplier" required />
             </label>
             <label>
               Password
@@ -94,11 +126,20 @@ export default function LoginPage() {
 
             {error && <div className="cafe-auth-error">{error}</div>}
 
-            <button type="submit" disabled={loading} className="cafe-auth-primary">
-              {loading ? 'Signing in...' : 'Sign in'} <AuthIcon name="arrow" size={17} />
+            <button type="submit" disabled={loading || locked} className="cafe-auth-primary">
+              {loading ? 'Signing in...' : locked ? 'Account locked' : 'Sign in'} <AuthIcon name="arrow" size={17} />
             </button>
-            <button type="button" onClick={enterDemo} className="cafe-auth-secondary">Open demo dashboard</button>
+            {locked && <button type="button" onClick={resetLock} className="cafe-auth-secondary">Reset via email/phone</button>}
           </form>
+
+          <div className="cafe-demo-logins">
+            {DEMO_ACCOUNTS.map((account, index) => (
+              <button type="button" key={account.username} onClick={() => fillDemo(index)}>
+                <strong>{account.label}</strong>
+                <span>{account.username} / {account.password}</span>
+              </button>
+            ))}
+          </div>
 
           <p className="cafe-auth-foot">Don&apos;t have an account? <Link href="/register">Create cafe account</Link></p>
         </div>
