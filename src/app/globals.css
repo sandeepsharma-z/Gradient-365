@@ -1369,6 +1369,15 @@ a      { color: inherit; text-decoration: none; }
   text-transform: uppercase;
 }
 
+.supplier-sidebar .cafe-outlets,
+.supplier-sidebar .cafe-sidebar-promo {
+  display: none;
+}
+
+.supplier-sidebar .cafe-sidebar-scroll {
+  padding-bottom: 18px;
+}
+
 .cafe-content {
   min-height: 100vh;
   padding-left: 268px;

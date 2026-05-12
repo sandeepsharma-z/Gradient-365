@@ -99,7 +99,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const displayName = user?.name || user?.businessName || 'Arjun Mehta'
   const role = user?.role || 'Admin'
   const accountType = (user?.accountType || (role.toLowerCase().includes('supplier') ? 'supplier' : role.toLowerCase().includes('admin') ? 'admin' : 'cafe')).toLowerCase()
-  const visibleNav = NAV_ITEMS.filter(item => accountType === 'admin' || item.group === 'shared' || item.group === accountType)
+  const visibleNav = NAV_ITEMS
+    .filter(item => accountType === 'admin' || item.group === 'shared' || item.group === accountType)
+    .sort((a, b) => {
+      if (accountType !== 'supplier') return 0
+      const order = ['/supplier-dashboard', '/supplier-orders', '/supplier-catalogue', '/supplier-stock', '/supplier-enquiries', '/supplier-deliveries', '/settings']
+      return order.indexOf(a.href) - order.indexOf(b.href)
+    })
   const mobileNav = visibleNav.slice(0, 4)
   const brandHref = accountType === 'supplier' ? '/supplier-dashboard' : '/dashboard'
 
@@ -107,7 +113,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className={`cafe-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
-      <aside className={`cafe-sidebar desktop-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <aside className={`cafe-sidebar desktop-sidebar ${accountType === 'supplier' ? 'supplier-sidebar' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <button
           className="cafe-sidebar-toggle"
           type="button"
