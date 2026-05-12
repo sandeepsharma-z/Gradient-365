@@ -41,6 +41,8 @@ const DEMO_CUSTOMERS = [
   { name: 'Sweet Crumb Studio', type: 'Dessert partner', contact: 'Priya Yadav', location: 'Jayanagar', orders: 27, spend: 'Rs 2.2L', rating: 4.7, tags: ['Desserts', 'Custom'], status: 'Active', img: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=180&q=80' },
 ]
 
+type CustomerCard = (typeof DEMO_CUSTOMERS)[number]
+
 function Stars({ rating }: { rating: number }) {
   return <span className="cafe-customer-stars">★ {rating.toFixed(1)}</span>
 }
@@ -50,6 +52,15 @@ export default function SuppliersPage() {
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
+  const [showAddCustomer, setShowAddCustomer] = useState(false)
+  const [addedCustomers, setAddedCustomers] = useState<CustomerCard[]>([])
+  const [newCustomer, setNewCustomer] = useState({
+    name: '',
+    type: '',
+    contact: '',
+    location: '',
+    tag: '',
+  })
 
   useEffect(() => {
     api.get<{ suppliers: Supplier[] }>('/api/suppliers')
@@ -59,8 +70,7 @@ export default function SuppliersPage() {
   }, [])
 
   const customers = useMemo(() => {
-    if (!suppliers.length) return DEMO_CUSTOMERS
-    return suppliers.map((supplier, index) => ({
+    const baseCustomers = !suppliers.length ? DEMO_CUSTOMERS : suppliers.map((supplier, index) => ({
       name: supplier.business_name,
       type: supplier.product_categories?.[0] || 'Supplier',
       contact: supplier.contact_person || 'Manager',
@@ -72,7 +82,8 @@ export default function SuppliersPage() {
       status: 'Active',
       img: DEMO_CUSTOMERS[index % DEMO_CUSTOMERS.length].img,
     }))
-  }, [suppliers])
+    return [...addedCustomers, ...baseCustomers]
+  }, [addedCustomers, suppliers])
 
   const filtered = customers.filter(customer => {
     const matchesFilter = activeFilter === 'All' || customer.status === activeFilter || customer.tags.includes(activeFilter)
@@ -81,6 +92,25 @@ export default function SuppliersPage() {
   })
 
   const filters = ['All', 'Active', 'Review', 'Dairy', 'Coffee', 'Bakery', 'Produce']
+
+  function addCustomer() {
+    const name = newCustomer.name.trim()
+    if (!name) return
+    setAddedCustomers(prev => [{
+      name,
+      type: newCustomer.type.trim() || 'Cafe partner',
+      contact: newCustomer.contact.trim() || 'Manager',
+      location: newCustomer.location.trim() || 'Bengaluru',
+      orders: 0,
+      spend: 'Rs 0',
+      rating: 4.5,
+      tags: [newCustomer.tag.trim() || 'New'],
+      status: 'Active',
+      img: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=180&q=80',
+    }, ...prev])
+    setNewCustomer({ name: '', type: '', contact: '', location: '', tag: '' })
+    setShowAddCustomer(false)
+  }
 
   return (
     <main className="cafe-customers-page">
@@ -94,7 +124,7 @@ export default function SuppliersPage() {
           <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search customer, contact, location..." />
         </label>
         <button><Icon name="filter" size={18} /></button>
-        <button><Icon name="plus" /> Add Customer</button>
+        <button onClick={() => setShowAddCustomer(true)}><Icon name="plus" /> Add Customer</button>
       </header>
 
       <section className="cafe-customers-stats">
@@ -154,6 +184,48 @@ export default function SuppliersPage() {
           ))}
         </div>
       </section>
+
+      {showAddCustomer && (
+        <div className="cafe-customers-modal-backdrop" onClick={() => setShowAddCustomer(false)}>
+          <div className="cafe-customers-modal" onClick={event => event.stopPropagation()}>
+            <div className="cafe-customers-modal-head">
+              <div>
+                <span>Customer setup</span>
+                <h2>Add Customer</h2>
+              </div>
+              <button onClick={() => setShowAddCustomer(false)}>×</button>
+            </div>
+
+            <div className="cafe-customers-form-grid">
+              <label>
+                Customer name
+                <input value={newCustomer.name} onChange={event => setNewCustomer(prev => ({ ...prev, name: event.target.value }))} placeholder="e.g. Brew & Co. Saket" />
+              </label>
+              <label>
+                Customer type
+                <input value={newCustomer.type} onChange={event => setNewCustomer(prev => ({ ...prev, type: event.target.value }))} placeholder="Cafe partner" />
+              </label>
+              <label>
+                Contact person
+                <input value={newCustomer.contact} onChange={event => setNewCustomer(prev => ({ ...prev, contact: event.target.value }))} placeholder="Manager name" />
+              </label>
+              <label>
+                Location
+                <input value={newCustomer.location} onChange={event => setNewCustomer(prev => ({ ...prev, location: event.target.value }))} placeholder="Indiranagar, Bengaluru" />
+              </label>
+              <label className="wide">
+                Tag
+                <input value={newCustomer.tag} onChange={event => setNewCustomer(prev => ({ ...prev, tag: event.target.value }))} placeholder="Dairy / Coffee / Bakery / New" />
+              </label>
+            </div>
+
+            <div className="cafe-customers-modal-actions">
+              <button onClick={() => setShowAddCustomer(false)}>Cancel</button>
+              <button onClick={addCustomer}>Save Customer</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
