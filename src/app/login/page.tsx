@@ -3,8 +3,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api } from '@/lib/api'
-import type { AuthResponse } from '@gradient365/types'
 import { AuthPasswordToggleIcon } from '@/components/auth-password-toggle-icon'
+
+interface AuthResponse {
+  token: string
+  user: unknown
+}
 
 export default function LoginPage() {
   const router = useRouter()
