@@ -3630,6 +3630,155 @@ a      { color: inherit; text-decoration: none; }
   font-weight: 700;
 }
 
+.cafe-orders-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  background: rgba(28, 20, 16, 0.42);
+  backdrop-filter: blur(10px);
+}
+
+.cafe-orders-modal {
+  width: min(560px, 100%);
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 34px 90px -48px rgba(28, 20, 16, 0.65);
+  animation: cafeModalIn 0.18s ease both;
+}
+
+.cafe-orders-modal-head {
+  padding: 22px 24px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line-2);
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.12), rgba(255, 255, 255, 0));
+}
+
+.cafe-orders-modal-head span {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.cafe-orders-modal-head h2 {
+  margin: 5px 0 0;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.cafe-orders-modal-head > button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--ink-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.cafe-orders-form-grid {
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cafe-orders-form-grid label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cafe-orders-form-grid label.wide {
+  grid-column: 1 / -1;
+}
+
+.cafe-orders-form-grid input,
+.cafe-orders-form-grid select,
+.cafe-orders-form-grid textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  outline: 0;
+  color: var(--ink);
+  background: var(--surface-warm);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cafe-orders-form-grid input,
+.cafe-orders-form-grid select {
+  height: 44px;
+  padding: 0 12px;
+}
+
+.cafe-orders-form-grid textarea {
+  min-height: 86px;
+  resize: vertical;
+  padding: 12px;
+}
+
+.cafe-orders-modal-actions {
+  padding: 16px 24px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line-2);
+}
+
+.cafe-orders-modal-actions > a {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.cafe-orders-modal-actions > div {
+  display: flex;
+  gap: 10px;
+}
+
+.cafe-orders-modal-actions button {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 13px;
+  color: var(--ink-2);
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.cafe-orders-modal-actions button:last-child {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #ff9d00, #ff5a00);
+  box-shadow: 0 16px 34px -22px rgba(255, 90, 0, 0.8);
+}
+
+@keyframes cafeModalIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @media (max-width: 1180px) {
   .cafe-orders-topbar {
     grid-template-columns: minmax(0, 1fr) 50px 148px;
@@ -3704,6 +3853,24 @@ a      { color: inherit; text-decoration: none; }
   .cafe-orders-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .cafe-orders-modal-backdrop {
+    padding: 12px;
+  }
+
+  .cafe-orders-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cafe-orders-modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cafe-orders-modal-actions > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 }
 

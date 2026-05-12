@@ -109,6 +109,7 @@ function OrdersContent() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [showNewOrder, setShowNewOrder] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -147,6 +148,23 @@ function OrdersContent() {
     })
   }
 
+  function createQuickOrder() {
+    const id = Date.now()
+    const nextOrder: Order = {
+      id,
+      order_ref: `ORD-${String(id).slice(-5)}`,
+      supplier_name: 'Blue Tokai Roasters',
+      supplier_account_id: 'SUP-03',
+      item_count: 6,
+      total_amount: '24680',
+      status: 'pending',
+      payment_status: 'unpaid',
+      created_at: new Date().toISOString(),
+    }
+    setOrders(prev => [nextOrder, ...prev])
+    setShowNewOrder(false)
+  }
+
   return (
     <main className="cafe-orders-page">
       <header className="cafe-orders-topbar">
@@ -159,7 +177,7 @@ function OrdersContent() {
           <input placeholder="Search order, supplier, SKU..." />
         </label>
         <button className="cafe-orders-icon-btn" aria-label="Export"><Icon name="download" /></button>
-        <Link href="/urgent-search" className="cafe-orders-primary"><Icon name="plus" /> New Order</Link>
+        <button className="cafe-orders-primary" onClick={() => setShowNewOrder(true)}><Icon name="plus" /> New Order</button>
       </header>
 
       <section className="cafe-orders-hero">
@@ -276,6 +294,60 @@ function OrdersContent() {
           <strong>{selected.size} selected</strong>
           <button>Export selected</button>
           <button onClick={() => setSelected(new Set())}>Clear</button>
+        </div>
+      )}
+
+      {showNewOrder && (
+        <div className="cafe-orders-modal-backdrop" onClick={() => setShowNewOrder(false)}>
+          <div className="cafe-orders-modal" onClick={event => event.stopPropagation()}>
+            <div className="cafe-orders-modal-head">
+              <div>
+                <span>Quick order</span>
+                <h2>Create New Order</h2>
+              </div>
+              <button onClick={() => setShowNewOrder(false)}>×</button>
+            </div>
+
+            <div className="cafe-orders-form-grid">
+              <label>
+                Supplier
+                <select defaultValue="Blue Tokai Roasters">
+                  <option>Blue Tokai Roasters</option>
+                  <option>Nandini Dairy Kitchen</option>
+                  <option>Bloom Fresh Greens</option>
+                  <option>Hearth & Stone Bakery</option>
+                </select>
+              </label>
+              <label>
+                Outlet
+                <select defaultValue="Indiranagar">
+                  <option>Indiranagar</option>
+                  <option>Koramangala</option>
+                  <option>HSR Layout</option>
+                </select>
+              </label>
+              <label>
+                Items
+                <input defaultValue="6" />
+              </label>
+              <label>
+                Amount
+                <input defaultValue="Rs 24,680" />
+              </label>
+              <label className="wide">
+                Order notes
+                <textarea defaultValue="Arabica beans, cold brew bottles, and paper cups for morning stock." />
+              </label>
+            </div>
+
+            <div className="cafe-orders-modal-actions">
+              <Link href="/urgent-search">Need urgent supplier?</Link>
+              <div>
+                <button onClick={() => setShowNewOrder(false)}>Cancel</button>
+                <button onClick={createQuickOrder}>Create Order</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </main>
