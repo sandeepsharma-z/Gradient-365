@@ -23,6 +23,7 @@ function Icon({ name, size = 19 }: { name: string; size?: number }) {
     inventory: <><path d="M5 7h14l-1 14H6z" /><path d="M9 7a3 3 0 0 1 6 0" /><path d="M9 12h6" /></>,
     marketing: <><path d="M4 14l13-7v10L4 14z" /><path d="M4 14v5a2 2 0 0 0 2 2h1" /><path d="M17 7l3-2v14l-3-2" /></>,
     reports: <><path d="M4 19V5M4 19h16" /><path d="M8 16v-5M12 16V8M16 16v-8" /></>,
+    supplier: <><path d="M3 21h18" /><path d="M5 21V7l7-4 7 4v14" /><path d="M9 21v-8h6v8" /><path d="M8 9h.01M12 9h.01M16 9h.01" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.03.03a2 2 0 1 1-2.83 2.83l-.03-.03A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.05a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.88.34l-.03.03a2 2 0 1 1-2.83-2.83l.03-.03A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.05A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.03-.03a2 2 0 1 1 2.83-2.83l.03.03A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.05a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.03-.03a2 2 0 1 1 2.83 2.83l-.03.03A1.7 1.7 0 0 0 19.4 9c.36.31.88.6 1.55.6H21a2 2 0 1 1 0 4h-.05A1.7 1.7 0 0 0 19.4 15z" /></>,
     arrow: <><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></>,
     chevron: <><path d="m9 18 6-6-6-6" /></>,
@@ -46,6 +47,11 @@ const NAV_ITEMS = [
   { label: 'Marketing', icon: 'marketing', href: '/negotiations' },
   { label: 'Reports', icon: 'reports', href: '/reports' },
   { label: 'Settings', icon: 'settings', href: '/settings' },
+  { label: 'Supplier Hub', icon: 'supplier', href: '/supplier-dashboard' },
+  { label: 'Supplier Catalogue', icon: 'menu', href: '/supplier-catalogue' },
+  { label: 'Supplier Stock', icon: 'inventory', href: '/supplier-stock' },
+  { label: 'Enquiries', icon: 'marketing', href: '/supplier-enquiries' },
+  { label: 'Deliveries', icon: 'orders', href: '/supplier-deliveries' },
 ]
 
 const OUTLETS = [

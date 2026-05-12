@@ -6837,6 +6837,225 @@ a      { color: inherit; text-decoration: none; }
   font-size: 11px;
 }
 
+/* Supplier-side frontend */
+.supplier-page .cafe-ops-topbar {
+  grid-template-columns: minmax(260px, 1fr) auto auto;
+}
+
+.supplier-hero {
+  position: relative;
+  min-height: 360px;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.supplier-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.supplier-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(28, 13, 4, 0.86), rgba(28, 13, 4, 0.36));
+}
+
+.supplier-hero > div {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  min-height: 360px;
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: #fff;
+}
+
+.supplier-hero span {
+  color: #ffbd78;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.supplier-hero h2 {
+  margin: 8px 0 0;
+  font-size: clamp(32px, 4vw, 54px);
+  line-height: 1;
+  font-weight: 800;
+}
+
+.supplier-hero p {
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.supplier-hero div div {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.supplier-hero a {
+  min-height: 40px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff9d00, #ff5a00);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.supplier-product-grid,
+.supplier-enquiry-grid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.supplier-product-card {
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 15px 42px -34px rgba(77, 44, 12, 0.55);
+}
+
+.supplier-product-card img {
+  width: 100%;
+  height: 138px;
+  object-fit: cover;
+  display: block;
+}
+
+.supplier-product-card div {
+  padding: 14px;
+}
+
+.supplier-product-card span {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.supplier-product-card h3,
+.supplier-enquiry-card h2 {
+  margin: 6px 0 0;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.supplier-product-card p,
+.supplier-enquiry-card p {
+  margin: 5px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.supplier-product-card footer {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line-2);
+}
+
+.supplier-product-card b,
+.supplier-enquiry-card b {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.supplier-product-card small {
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: var(--ok);
+  background: var(--ok-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.supplier-product-card small.warn { color: var(--warn); background: var(--warn-soft); }
+.supplier-product-card small.danger { color: var(--danger); background: var(--danger-soft); }
+
+.supplier-enquiry-grid {
+  padding: 0;
+}
+
+.supplier-enquiry-card {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+  border-radius: 18px;
+}
+
+.supplier-enquiry-card > span {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.supplier-enquiry-card div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.supplier-enquiry-card button,
+.cafe-ops-table select {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: var(--ink-2);
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.supplier-enquiry-card button:nth-child(3),
+.supplier-enquiry-card button:nth-child(4) {
+  color: #fff;
+  background: var(--accent);
+  border-color: transparent;
+}
+
+@media (max-width: 1180px) {
+  .supplier-product-grid,
+  .supplier-enquiry-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .supplier-page .cafe-ops-topbar,
+  .supplier-product-grid,
+  .supplier-enquiry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .supplier-hero > div {
+    padding: 24px;
+  }
+}
+
 @media (max-width: 1180px) {
   .cafe-ops-topbar {
     grid-template-columns: minmax(0, 1fr) auto auto;
