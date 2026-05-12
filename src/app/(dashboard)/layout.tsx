@@ -140,7 +140,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="cafe-outlets">
             <p className="cafe-outlets-label">Outlets</p>
             {OUTLETS.map(outlet => (
-              <Link key={outlet.name} href="#" className="cafe-outlet-card">
+                  <Link key={outlet.name} href={`/dashboard?outlet=${encodeURIComponent(outlet.name)}`} className="cafe-outlet-card">
                 <img src={outlet.img} alt={outlet.name} />
                 <div className="cafe-outlet-info">
                   <strong>{outlet.name}</strong>
