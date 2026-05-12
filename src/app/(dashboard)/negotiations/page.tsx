@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useState, Suspense } from 'react'
+
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { api } from '@/lib/api'
 
@@ -12,123 +13,132 @@ interface Negotiation {
   last_offer: string
 }
 
-const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }> = {
-  pending:          { bg: '#fef9c3', color: '#854d0e', label: 'Pending' },
-  accepted:         { bg: '#dcfce7', color: '#166534', label: 'Accepted' },
-  rejected:         { bg: '#fee2e2', color: '#991b1b', label: 'Rejected' },
-  delivered:        { bg: '#ccfbf1', color: '#0f766e', label: 'Delivered' },
-  confirmed:        { bg: '#dcfce7', color: '#166534', label: 'Confirmed' },
-  cancelled:        { bg: '#fee2e2', color: '#991b1b', label: 'Cancelled' },
-  counter_pending:  { bg: '#fef3c7', color: '#92400e', label: 'Counter Offered' },
-  counter_accepted: { bg: '#d1fae5', color: '#065f46', label: 'Counter Accepted' },
-}
+type IconName = 'search' | 'plus' | 'megaphone' | 'chart' | 'tag' | 'check' | 'filter' | 'calendar'
 
-function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_COLORS[status] ?? { bg: '#f3f4f6', color: '#6b7280', label: status }
-  return (
-    <span style={{ background: s.bg, color: s.color, padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>
-      {s.label}
-    </span>
-  )
+function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, React.ReactNode> = {
+    search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
+    plus: <><path d="M12 5v14M5 12h14" /></>,
+    megaphone: <><path d="m3 11 18-5v12L3 13z" /><path d="M11 14v5a2 2 0 0 1-4 0v-6" /></>,
+    chart: <><path d="M4 19V5" /><path d="M4 19h16" /><path d="m7 15 4-4 3 3 5-7" /></>,
+    tag: <><path d="M20 12 12 20 4 12V4h8z" /><circle cx="9" cy="9" r="1" /></>,
+    check: <><path d="M20 6 9 17l-5-5" /></>,
+    filter: <><path d="M22 3H2l8 9.5V19l4 2v-8.5z" /></>,
+    calendar: <><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M8 2v4M16 2v4M3 10h18" /></>,
+  }
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
 const TABS = [
-  { value: 'all',             label: 'All' },
-  { value: 'pending',         label: 'Pending' },
-  { value: 'counter_pending', label: 'Counter Offered' },
-  { value: 'accepted',        label: 'Accepted' },
-  { value: 'rejected',        label: 'Rejected' },
+  { value: 'all', label: 'All Campaigns' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'counter_pending', label: 'Offers' },
+  { value: 'accepted', label: 'Accepted' },
+  { value: 'rejected', label: 'Rejected' },
 ]
+
+const DEMO_NEGOTIATIONS: Negotiation[] = [
+  { id: 1, order_ref: 'MKT-FLAT20', supplier_name: 'Flat White Weekend Push', status: 'accepted', created_at: new Date().toISOString(), last_offer: '18400' },
+  { id: 2, order_ref: 'MKT-BRUNCH10', supplier_name: 'Brunch Combo Social Ads', status: 'counter_pending', created_at: new Date().toISOString(), last_offer: '12600' },
+  { id: 3, order_ref: 'MKT-LOYALTY', supplier_name: 'Loyalty Rewards Campaign', status: 'pending', created_at: new Date().toISOString(), last_offer: '8200' },
+  { id: 4, order_ref: 'MKT-COLD5', supplier_name: 'Cold Brew Delivery Promo', status: 'accepted', created_at: new Date().toISOString(), last_offer: '9600' },
+]
+
+function fmtAmount(value: string) {
+  const n = parseFloat(value)
+  return Number.isNaN(n) ? value : 'Rs ' + n.toLocaleString('en-IN')
+}
+
+function statusClass(status: string) {
+  if (status === 'accepted' || status === 'counter_accepted') return 'ok'
+  if (status === 'pending' || status === 'counter_pending') return 'warn'
+  if (status === 'rejected') return 'danger'
+  return 'neutral'
+}
+
+function label(status: string) {
+  if (status === 'counter_pending') return 'Offer Live'
+  if (status === 'accepted') return 'Approved'
+  if (status === 'pending') return 'Pending'
+  if (status === 'rejected') return 'Rejected'
+  return status
+}
 
 function NegotiationsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const statusParam = searchParams.get('status') ?? 'all'
-
-  const [negotiations, setNegotiations] = useState<Negotiation[]>([])
+  const [items, setItems] = useState<Negotiation[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
     api.get<{ negotiations: Negotiation[] }>('/api/negotiations')
-      .then(data => setNegotiations(data.negotiations ?? []))
-      .catch(() => setNegotiations([]))
+      .then(data => setItems(data.negotiations?.length ? data.negotiations : DEMO_NEGOTIATIONS))
+      .catch(() => setItems(DEMO_NEGOTIATIONS))
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = statusParam === 'all'
-    ? negotiations
-    : negotiations.filter(n => n.status === statusParam)
+  const filtered = statusParam === 'all' ? items : items.filter(n => n.status === statusParam)
+  const accepted = items.filter(n => n.status === 'accepted' || n.status === 'counter_accepted').length
+  const pending = items.filter(n => n.status === 'pending' || n.status === 'counter_pending').length
+  const budget = items.reduce((sum, item) => sum + parseFloat(item.last_offer || '0'), 0)
+  const stats = useMemo(() => [
+    { icon: 'megaphone' as IconName, label: 'Campaigns', value: items.length || '-', sub: 'Active workspace' },
+    { icon: 'check' as IconName, label: 'Approved', value: accepted, sub: 'Ready to run' },
+    { icon: 'tag' as IconName, label: 'Pending Offers', value: pending, sub: 'Needs decision' },
+    { icon: 'chart' as IconName, label: 'Budget', value: fmtAmount(String(budget)), sub: 'Tracked spend' },
+  ], [accepted, budget, items.length, pending])
 
   return (
-    <>
-      <div style={{ height: '50px', background: '#fff', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 18px', gap: '10px', flexShrink: 0 }}>
-        <div style={{ flex: 1, maxWidth: '260px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '7px', padding: '6px 11px', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>🔍 Search negotiations…</div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--portal-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', fontWeight: 700 }}>C</div>
-        </div>
-      </div>
+    <main className="cafe-ops-page">
+      <header className="cafe-ops-topbar">
+        <div><h1>Marketing</h1><p>Plan cafe offers, supplier promos, campaign budgets, and social pushes.</p></div>
+        <label><Icon name="search" size={19} /><input placeholder="Search campaign, promo, supplier..." /></label>
+        <button><Icon name="calendar" /> This Week</button>
+        <button><Icon name="plus" /> New Campaign</button>
+      </header>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '18px' }}>
-        <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '14px' }}>Negotiations</div>
+      <section className="cafe-ops-stats">
+        {stats.map(stat => <div className="cafe-card cafe-ops-stat" key={stat.label}><span><Icon name={stat.icon} /></span><div><p>{stat.label}</p><strong>{stat.value}</strong><small>{stat.sub}</small></div></div>)}
+      </section>
 
-        <div className="tab-bar">
-          {TABS.map(tab => (
-            <button
-              key={tab.value}
-              className={`tab-item${statusParam === tab.value ? ' active' : ''}`}
-              onClick={() => router.push(tab.value === 'all' ? '/negotiations' : `/negotiations?status=${tab.value}`)}
-            >
-              {tab.label} ({tab.value === 'all' ? negotiations.length : negotiations.filter(n => n.status === tab.value).length})
-            </button>
-          ))}
-        </div>
-
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {loading ? (
-            <div style={{ color: 'var(--text-muted)', fontSize: '12px', padding: '20px 0' }}>Loading negotiations…</div>
-          ) : filtered.length === 0 ? (
-            <div style={{ background: '#fff', borderRadius: '10px', padding: '48px', textAlign: 'center', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '32px', marginBottom: '10px' }}>🤝</div>
-              <p style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '12px' }}>No active negotiations</p>
-            </div>
-          ) : (
-            filtered.map(neg => (
-              <div
-                key={neg.id}
-                onClick={() => router.push(`/negotiations/${neg.id}`)}
-                style={{ background: '#fff', borderRadius: '9px', border: '1px solid var(--border)', padding: '11px 13px', marginBottom: '7px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--portal-primary)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
-              >
-                <span style={{ fontSize: '18px', flexShrink: 0 }}>📦</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'monospace' }}>{neg.order_ref}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>{neg.supplier_name}</div>
+      <section className="cafe-ops-grid two">
+        <div className="cafe-card cafe-ops-board">
+          <div className="cafe-ops-tabs">
+            {TABS.map(tab => <button key={tab.value} className={statusParam === tab.value ? 'active' : ''} onClick={() => router.push(tab.value === 'all' ? '/negotiations' : `/negotiations?status=${tab.value}`)}>{tab.label}<span>{tab.value === 'all' ? items.length : items.filter(n => n.status === tab.value).length}</span></button>)}
+          </div>
+          <div className="cafe-ops-toolbar"><label><Icon name="search" size={16} /><input placeholder="Search marketing item..." /></label><button><Icon name="filter" size={15} /> Filter</button><div /></div>
+          <div className="cafe-ops-card-grid">
+            {loading ? <div className="cafe-ops-empty">Loading marketing...</div> : filtered.map((item, index) => (
+              <article className="cafe-ops-campaign" key={item.id} onClick={() => router.push(`/negotiations/${item.id}`)}>
+                <img src={[
+                  '/images/cafe-campaign-1.jpg',
+                  '/images/cafe-campaign-2.jpg',
+                  '/images/cafe-campaign-3.jpg',
+                ][index % 3]} alt="" />
+                <div>
+                  <span className={`status ${statusClass(item.status)}`}><span className="dot" />{label(item.status)}</span>
+                  <h3>{item.supplier_name}</h3>
+                  <p>{item.order_ref} - Budget {fmtAmount(item.last_offer)}</p>
+                  <small>{new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</small>
                 </div>
-                <div style={{ marginRight: '10px', textAlign: 'right' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginBottom: '2px' }}>
-                    {neg.status === 'accepted' || neg.status === 'counter_accepted' ? 'Agreed' : neg.status === 'counter_pending' ? 'Counter' : 'Last offer'}
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: (neg.status === 'accepted' || neg.status === 'counter_accepted') ? '#16A34A' : neg.status === 'counter_pending' ? '#2563EB' : 'var(--portal-primary)' }}>
-                    ₹{Number(neg.last_offer).toLocaleString('en-IN')}
-                  </div>
-                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{new Date(neg.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
-                </div>
-                <StatusBadge status={neg.status} />
-              </div>
-            ))
-          )}
+              </article>
+            ))}
+          </div>
         </div>
-      </div>
-    </>
+
+        <aside className="cafe-card cafe-ops-panel">
+          <div className="cafe-ops-panel-image"><img src="/images/cafe-marketing.jpg" alt="" /></div>
+          <h2>Best next push</h2>
+          <p>Flat White weekend special is performing strongest. Keep offer copy short, highlight 20% off, and target delivery customers from 4 PM to 8 PM.</p>
+          {['Instagram story creative', 'Zomato banner slot', 'Loyalty SMS blast'].map(item => <div className="cafe-ops-mini" key={item}><Icon name="megaphone" size={15} /><span>{item}</span></div>)}
+        </aside>
+      </section>
+    </main>
   )
 }
 
 export default function NegotiationsPage() {
-  return (
-    <Suspense fallback={<div style={{ color: '#64748b' }}>Loading...</div>}>
-      <NegotiationsContent />
-    </Suspense>
-  )
+  return <Suspense fallback={<div className="cafe-ops-page">Loading...</div>}><NegotiationsContent /></Suspense>
 }

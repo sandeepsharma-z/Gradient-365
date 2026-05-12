@@ -1,96 +1,67 @@
 'use client'
 
 import Link from 'next/link'
-import { Icon, PageIntro, PageShell, StatusBadge } from '@/components/cafe-v2'
 
-const SETTINGS_GROUPS = [
-  {
-    title: 'Outlet defaults',
-    sub: 'Ordering windows, low-stock thresholds, and preferred outlet routing.',
-    status: '3 outlets configured',
-    tone: 'ok' as const,
-    rows: ['Indiranagar opens at 07:30', 'Koramangala weekly billing enabled', 'HSR Layout packaging alerts on'],
-  },
-  {
-    title: 'Notifications',
-    sub: 'Delivery nudges, invoice approvals, and stock alerts for owner and managers.',
-    status: '12 rules active',
-    tone: 'accent' as const,
-    rows: ['WhatsApp delivery alerts', 'Email invoice digest at 18:00', 'Critical stock SMS escalation'],
-  },
-  {
-    title: 'Security',
-    sub: 'Account access, session controls, and password changes live under profile.',
-    status: 'Profile managed',
-    tone: 'warn' as const,
-    rows: ['Owner role active', 'JWT cookie auth', 'Password changes require current password'],
-  },
+type IconName = 'search' | 'check' | 'user' | 'bell' | 'lock' | 'store' | 'save'
+
+function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, React.ReactNode> = {
+    search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
+    check: <><path d="M20 6 9 17l-5-5" /></>,
+    user: <><circle cx="12" cy="7" r="4" /><path d="M5.5 21a6.5 6.5 0 0 1 13 0" /></>,
+    bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></>,
+    lock: <><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>,
+    store: <><path d="M4 10h16l-1-6H5z" /><path d="M6 10v10h12V10" /><path d="M9 20v-6h6v6" /></>,
+    save: <><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><path d="M17 21v-8H7v8" /><path d="M7 3v5h8" /></>,
+  }
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
+}
+
+const GROUPS = [
+  { icon: 'store' as IconName, title: 'Outlet Defaults', status: '3 outlets configured', rows: ['Indiranagar opens at 07:30', 'Koramangala weekly billing enabled', 'HSR Layout packaging alerts on'] },
+  { icon: 'bell' as IconName, title: 'Notifications', status: '12 rules active', rows: ['WhatsApp delivery alerts', 'Email invoice digest at 18:00', 'Critical stock SMS escalation'] },
+  { icon: 'lock' as IconName, title: 'Security', status: 'Owner role active', rows: ['JWT cookie auth', 'Password changes require current password', 'Session timeout after inactivity'] },
 ]
 
 export default function SettingsPage() {
   return (
-    <PageShell footerLeft="Gradient Cafe Portal - Settings" footerRight="3 outlets - notification rules synced">
-      <PageIntro
-        eyebrow="Settings - Cafe workspace"
-        title="Tune the portal"
-        em="around daily operations."
-        body={(
-          <>
-            Manage the defaults that shape orders, alerts, and outlet behaviour. For personal account details and password changes, open the profile card.
-          </>
-        )}
-        action={(
-          <>
-            <Link href="/profile" className="tb-btn" style={{ height: 36, textDecoration: 'none' }}>
-              <Icon name="more" size={13} /> Profile
-            </Link>
-            <button className="btn-primary"><Icon name="check" size={14} /> Save settings</button>
-          </>
-        )}
-      />
+    <main className="cafe-ops-page">
+      <header className="cafe-ops-topbar">
+        <div><h1>Settings</h1><p>Workspace defaults, notifications, outlet rules, and account access.</p></div>
+        <label><Icon name="search" size={19} /><input placeholder="Search settings..." /></label>
+        <Link href="/profile"><Icon name="user" /> Profile</Link>
+        <button><Icon name="save" /> Save</button>
+      </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 0.75fr', gap: 20, alignItems: 'start' }}>
-        <section style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {SETTINGS_GROUPS.map(group => (
-            <div key={group.title} className="card" style={{ overflow: 'hidden' }}>
-              <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--line-2)', display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: 14 }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, letterSpacing: '-0.005em' }}>{group.title}</h3>
-                  <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>{group.sub}</div>
-                </div>
-                <StatusBadge tone={group.tone}>{group.status}</StatusBadge>
-              </div>
-              {group.rows.map(row => (
-                <div key={row} style={{ display: 'grid', gridTemplateColumns: '28px 1fr auto', alignItems: 'center', gap: 12, padding: '13px 22px', borderBottom: '1px solid var(--line-2)' }}>
-                  <span style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--surface-warm)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-3)' }}>
-                    <Icon name="check" size={13} />
-                  </span>
-                  <span style={{ fontSize: 13.5, color: 'var(--ink)', fontWeight: 500 }}>{row}</span>
-                  <button className="tb-btn" style={{ height: 28 }}>Edit</button>
-                </div>
-              ))}
+      <section className="cafe-ops-stats">
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="store" /></span><div><p>Outlets</p><strong>3</strong><small>Configured</small></div></div>
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="bell" /></span><div><p>Rules</p><strong>12</strong><small>Alerts active</small></div></div>
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="lock" /></span><div><p>Security</p><strong>Owner</strong><small>Role active</small></div></div>
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="check" /></span><div><p>Sync</p><strong>Live</strong><small>All settings saved</small></div></div>
+      </section>
+
+      <section className="cafe-ops-grid settings">
+        <div className="cafe-ops-settings-list">
+          {GROUPS.map(group => (
+            <div className="cafe-card cafe-ops-setting" key={group.title}>
+              <div className="cafe-ops-setting-head"><span><Icon name={group.icon} /></span><div><h2>{group.title}</h2><p>{group.status}</p></div><button>Edit</button></div>
+              {group.rows.map(row => <div className="cafe-ops-setting-row" key={row}><Icon name="check" size={15} /><span>{row}</span><button>Change</button></div>)}
             </div>
           ))}
-        </section>
+        </div>
 
-        <aside className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--line-2)' }}>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Quick links</h3>
-            <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>Common workspace actions</div>
-          </div>
+        <aside className="cafe-card cafe-ops-panel">
+          <div className="cafe-ops-panel-image"><img src="/images/cafe-settings.jpg" alt="" /></div>
+          <h2>Quick links</h2>
+          <p>Most workspace controls are already tuned for the cafe flow. Profile and billing approvals stay one click away.</p>
           {[
-            { label: 'Profile and password', href: '/profile' },
-            { label: 'Billing approvals', href: '/billing' },
-            { label: 'Low-stock rules', href: '/inventory' },
-            { label: 'Supplier network', href: '/suppliers' },
-          ].map(link => (
-            <Link key={link.href} href={link.href} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 22px', borderBottom: '1px solid var(--line-2)', color: 'var(--ink-2)', textDecoration: 'none', fontSize: 13.5, fontWeight: 500 }}>
-              {link.label}
-              <span style={{ color: 'var(--ink-4)' }}>→</span>
-            </Link>
-          ))}
+            ['Profile and password', '/profile'],
+            ['Billing approvals', '/billing'],
+            ['Low-stock rules', '/inventory'],
+            ['Customer records', '/suppliers'],
+          ].map(([label, href]) => <Link className="cafe-ops-mini" href={href} key={href}><Icon name="user" size={15} /><span>{label}</span></Link>)}
         </aside>
-      </div>
-    </PageShell>
+      </section>
+    </main>
   )
 }

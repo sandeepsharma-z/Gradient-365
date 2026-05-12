@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useState, Suspense } from 'react'
+
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { api } from '@/lib/api'
@@ -14,124 +15,142 @@ interface Trial {
   feedback_submitted: boolean
 }
 
-const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }> = {
-  pending:          { bg: '#fef9c3', color: '#854d0e', label: 'Pending' },
-  active:           { bg: '#dcfce7', color: '#166534', label: 'Active' },
-  completed:        { bg: '#ccfbf1', color: '#0f766e', label: 'Completed' },
-  cancelled:        { bg: '#fee2e2', color: '#991b1b', label: 'Cancelled' },
-  counter_pending:  { bg: '#fef3c7', color: '#92400e', label: 'Counter Offered' },
-  counter_accepted: { bg: '#d1fae5', color: '#065f46', label: 'Counter Accepted' },
-  accepted:         { bg: '#dcfce7', color: '#166534', label: 'Accepted' },
-  rejected:         { bg: '#fee2e2', color: '#991b1b', label: 'Rejected' },
-  delivered:        { bg: '#ccfbf1', color: '#0f766e', label: 'Delivered' },
-  confirmed:        { bg: '#dcfce7', color: '#166534', label: 'Confirmed' },
-}
+type IconName = 'search' | 'plus' | 'users' | 'clock' | 'star' | 'check' | 'filter' | 'calendar'
 
-function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_COLORS[status] ?? { bg: '#f3f4f6', color: '#6b7280', label: status }
-  return (
-    <span style={{ background: s.bg, color: s.color, padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>
-      {s.label}
-    </span>
-  )
+function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, React.ReactNode> = {
+    search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
+    plus: <><path d="M12 5v14M5 12h14" /></>,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>,
+    clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+    star: <><path d="m12 2 3 6.5 7 .8-5.2 4.7 1.4 7-6.2-3.6L5.8 21l1.4-7L2 9.3l7-.8z" /></>,
+    check: <><path d="M20 6 9 17l-5-5" /></>,
+    filter: <><path d="M22 3H2l8 9.5V19l4 2v-8.5z" /></>,
+    calendar: <><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M8 2v4M16 2v4M3 10h18" /></>,
+  }
+
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
 const TABS = [
-  { value: 'all',       label: 'All' },
-  { value: 'pending',   label: 'Pending' },
-  { value: 'active',    label: 'Active' },
+  { value: 'all', label: 'All Staff' },
+  { value: 'active', label: 'On Duty' },
+  { value: 'pending', label: 'Pending Tasks' },
   { value: 'completed', label: 'Completed' },
 ]
+
+const DEMO_TRIALS: Trial[] = [
+  { id: 1, product_name: 'Morning prep checklist', brand_name: 'Neha Sharma - Barista', status: 'active', start_date: new Date().toISOString(), end_date: '', feedback_submitted: false },
+  { id: 2, product_name: 'Kitchen stock handover', brand_name: 'Rohan Das - Chef', status: 'active', start_date: new Date().toISOString(), end_date: '', feedback_submitted: false },
+  { id: 3, product_name: 'Cash counter closing report', brand_name: 'Priya Yadav - Cashier', status: 'pending', start_date: new Date().toISOString(), end_date: '', feedback_submitted: false },
+  { id: 4, product_name: 'Table service quality check', brand_name: 'Karan Singh - Waiter', status: 'completed', start_date: new Date().toISOString(), end_date: '', feedback_submitted: true },
+]
+
+const staffPhotos = [
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=140&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=140&q=80',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=140&q=80',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=140&q=80',
+]
+
+function statusLabel(status: string) {
+  if (status === 'active') return 'Active'
+  if (status === 'pending') return 'Pending'
+  if (status === 'completed') return 'Done'
+  return status
+}
+
+function statusClass(status: string) {
+  if (status === 'active' || status === 'completed') return 'ok'
+  if (status === 'pending') return 'warn'
+  return 'neutral'
+}
 
 function TrialsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const statusParam = searchParams.get('status') ?? 'all'
-
   const [trials, setTrials] = useState<Trial[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
     api.get<{ trials: Trial[] }>('/api/trials/cafe')
-      .then(data => setTrials(data.trials ?? []))
-      .catch(() => setTrials([]))
+      .then(data => setTrials(data.trials?.length ? data.trials : DEMO_TRIALS))
+      .catch(() => setTrials(DEMO_TRIALS))
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = statusParam === 'all'
-    ? trials
-    : trials.filter(t => t.status === statusParam)
+  const filtered = statusParam === 'all' ? trials : trials.filter(t => t.status === statusParam)
+  const active = trials.filter(t => t.status === 'active').length
+  const pending = trials.filter(t => t.status === 'pending').length
+  const completed = trials.filter(t => t.feedback_submitted || t.status === 'completed').length
+
+  const stats = useMemo(() => [
+    { icon: 'users' as IconName, label: 'Staff Members', value: trials.length || '-', sub: 'Across cafe floor' },
+    { icon: 'clock' as IconName, label: 'On Duty', value: active, sub: 'Current shift' },
+    { icon: 'star' as IconName, label: 'Open Tasks', value: pending, sub: 'Needs follow-up' },
+    { icon: 'check' as IconName, label: 'Completed', value: completed, sub: 'Today' },
+  ], [active, completed, pending, trials.length])
 
   return (
-    <>
-      <div style={{ height: '50px', background: '#fff', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 18px', gap: '10px', flexShrink: 0 }}>
-        <div style={{ flex: 1, maxWidth: '260px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '7px', padding: '6px 11px', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>🔍 Search trials…</div>
-        <div style={{ marginLeft: 'auto' }}><div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--portal-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#fff', fontWeight: 700 }}>C</div></div>
-      </div>
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '18px' }}>
-        <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '14px' }}>Trial Kits</div>
-
-        <div className="tab-bar">
-          {TABS.map(tab => (
-            <button
-              key={tab.value}
-              className={`tab-item${statusParam === tab.value ? ' active' : ''}`}
-              onClick={() => router.push(tab.value === 'all' ? '/trials' : `/trials?status=${tab.value}`)}
-            >
-              {tab.label} ({tab.value === 'all' ? trials.length : trials.filter(t => t.status === tab.value).length})
-            </button>
-          ))}
+    <main className="cafe-ops-page">
+      <header className="cafe-ops-topbar">
+        <div>
+          <h1>Staff</h1>
+          <p>Shift activity, team tasks, feedback, and floor ownership in one view.</p>
         </div>
+        <label><Icon name="search" size={19} /><input placeholder="Search staff, role, task..." /></label>
+        <button><Icon name="calendar" /> Shift Plan</button>
+        <button><Icon name="plus" /> Add Staff</button>
+      </header>
 
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {loading ? (
-            <div style={{ color: 'var(--text-muted)', fontSize: '12px', padding: '20px 0' }}>Loading trials…</div>
-          ) : filtered.length === 0 ? (
-            <div style={{ background: '#fff', borderRadius: '10px', padding: '48px', textAlign: 'center', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '32px', marginBottom: '10px' }}>🧪</div>
-              <p style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '12px' }}>No trial samples yet. Brands will send products for you to try.</p>
-            </div>
-          ) : (
-            filtered.map(trial => (
-              <div key={trial.id} style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--border)', padding: '13px', marginBottom: '9px', opacity: trial.feedback_submitted ? 0.65 : 1 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: trial.feedback_submitted ? '0' : '10px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '9px', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🎁</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{trial.product_name}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>
-                      {trial.brand_name} · {new Date(trial.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                      {trial.end_date && ` – ${new Date(trial.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
-                    </div>
-                  </div>
-                  <StatusBadge status={trial.status} />
+      <section className="cafe-ops-stats">
+        {stats.map(stat => (
+          <div className="cafe-card cafe-ops-stat" key={stat.label}>
+            <span><Icon name={stat.icon} /></span>
+            <div><p>{stat.label}</p><strong>{stat.value}</strong><small>{stat.sub}</small></div>
+          </div>
+        ))}
+      </section>
+
+      <section className="cafe-ops-grid two">
+        <div className="cafe-card cafe-ops-board">
+          <div className="cafe-ops-tabs">
+            {TABS.map(tab => (
+              <button key={tab.value} className={statusParam === tab.value ? 'active' : ''} onClick={() => router.push(tab.value === 'all' ? '/trials' : `/trials?status=${tab.value}`)}>
+                {tab.label}<span>{tab.value === 'all' ? trials.length : trials.filter(t => t.status === tab.value).length}</span>
+              </button>
+            ))}
+          </div>
+          <div className="cafe-ops-toolbar"><label><Icon name="search" size={16} /><input placeholder="Search task..." /></label><button><Icon name="filter" size={15} /> Filter</button><div /></div>
+          <div className="cafe-ops-list">
+            {loading ? <div className="cafe-ops-empty">Loading staff...</div> : filtered.map((trial, index) => (
+              <article className="cafe-ops-row" key={trial.id}>
+                <img src={staffPhotos[index % staffPhotos.length]} alt="" />
+                <div>
+                  <h3>{trial.brand_name}</h3>
+                  <p>{trial.product_name}</p>
+                  <small>{new Date(trial.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</small>
                 </div>
-
-                {trial.status === 'active' && !trial.feedback_submitted && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <Link href={`/trials/${trial.id}/feedback`}>
-                      <button className="btn-primary" style={{ padding: '6px 14px', fontSize: '10px' }}>Submit Feedback</button>
-                    </Link>
-                  </div>
-                )}
-
-                {trial.feedback_submitted && (
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '6px' }}>Feedback submitted. Supplier notified. Next step: order via catalogue.</div>
-                )}
-              </div>
-            ))
-          )}
+                <span className={`status ${statusClass(trial.status)}`}><span className="dot" />{statusLabel(trial.status)}</span>
+                {trial.status === 'active' && !trial.feedback_submitted ? <Link href={`/trials/${trial.id}/feedback`}>Feedback</Link> : <button>View</button>}
+              </article>
+            ))}
+          </div>
         </div>
-      </div>
-    </>
+
+        <aside className="cafe-card cafe-ops-panel">
+          <div className="cafe-ops-panel-image"><img src="https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=700&q=85" alt="" /></div>
+          <h2>Today&apos;s floor rhythm</h2>
+          <p>Peak breakfast window has 4 active staff and 2 pending handovers. Keep cashier break after the 11:30 rush.</p>
+          {['09:00 Barista setup', '10:30 Kitchen refill', '13:00 Floor reset'].map(item => <div className="cafe-ops-mini" key={item}><Icon name="clock" size={15} /><span>{item}</span></div>)}
+        </aside>
+      </section>
+    </main>
   )
 }
 
 export default function TrialsPage() {
-  return (
-    <Suspense fallback={<div style={{ color: '#64748b' }}>Loading...</div>}>
-      <TrialsContent />
-    </Suspense>
-  )
+  return <Suspense fallback={<div className="cafe-ops-page">Loading...</div>}><TrialsContent /></Suspense>
 }

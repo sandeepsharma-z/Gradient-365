@@ -1,232 +1,84 @@
 'use client'
 
-import { Icon, KpiCard, MiniBars, PageIntro, PageShell, StatStrip, StatusBadge, SupplierMark } from '@/components/cafe-v2'
+type IconName = 'search' | 'download' | 'chart' | 'receipt' | 'check' | 'warn' | 'calendar'
+
+function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, React.ReactNode> = {
+    search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
+    download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5M12 15V3" /></>,
+    chart: <><path d="M4 19V5" /><path d="M4 19h16" /><path d="m7 15 4-4 3 3 5-7" /></>,
+    receipt: <><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6M9 12h6M9 16h4" /></>,
+    check: <><path d="M20 6 9 17l-5-5" /></>,
+    warn: <><path d="M12 9v4" /><path d="M12 17h.01" /><path d="M10.3 3.8 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z" /></>,
+    calendar: <><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M8 2v4M16 2v4M3 10h18" /></>,
+  }
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
+}
 
 const CATEGORY_SPEND = [
-  { label: 'Dairy & eggs', value: '₹1,84,220', pct: 42, color: 'var(--accent)' },
-  { label: 'Coffee & tea', value: '₹96,500', pct: 22, color: 'var(--ok)' },
-  { label: 'Bakery', value: '₹41,960', pct: 10, color: 'var(--warn)' },
-  { label: 'Fresh produce', value: '₹32,180', pct: 8, color: 'var(--danger)' },
-  { label: 'Packaging', value: '₹38,900', pct: 9, color: 'var(--ink-3)' },
+  ['Beverages', '45%', 'Rs 56,060'],
+  ['Food', '30%', 'Rs 37,240'],
+  ['Desserts', '15%', 'Rs 18,660'],
+  ['Add-ons', '10%', 'Rs 12,620'],
 ]
 
 const SUPPLIERS = [
-  { name: 'Nandini Dairy Kitchen', spend: '₹1,84,220', orders: 18, onTime: '98.2%', delta: '+8.4%', color: 'c-1' },
-  { name: 'Blue Tokai Roasters', spend: '₹96,500', orders: 7, onTime: '94.1%', delta: '+3.1%', color: 'c-2' },
-  { name: 'Hearth & Stone Bakery', spend: '₹41,960', orders: 14, onTime: '91.0%', delta: '-1.8%', color: 'c-3' },
-  { name: 'Bloom & Wild Greens', spend: '₹32,180', orders: 9, onTime: '89.4%', delta: '+2.2%', color: 'c-4' },
+  ['Nandini Dairy Kitchen', '18', '98.2%', 'Rs 1,84,220'],
+  ['Blue Tokai Roasters', '7', '94.1%', 'Rs 96,500'],
+  ['Hearth & Stone Bakery', '14', '91.0%', 'Rs 41,960'],
+  ['Bloom Fresh Greens', '9', '89.4%', 'Rs 32,180'],
 ]
-
-const INSIGHTS = [
-  { type: 'Cost control', title: 'Coffee spend is climbing faster than sales', body: 'Attikan Estate has moved from 18% to 22% of procurement spend. Lock next month pricing before the seasonal quote revision.', tone: 'warn' as const },
-  { type: 'Reliability', title: 'Nandini should stay preferred', body: 'Daily dairy deliveries are running at 98.2% on-time with no critical stockout events in the last 30 days.', tone: 'ok' as const },
-  { type: 'Outlet drift', title: 'HSR packaging drain is abnormal', body: '12oz cups are being consumed 31% faster than Koramangala at similar order volume. Review counter wastage and staff issue logs.', tone: 'danger' as const },
-]
-
-function Donut() {
-  const segments = [
-    { value: 42, color: 'var(--accent)' },
-    { value: 22, color: 'var(--ok)' },
-    { value: 10, color: 'var(--warn)' },
-    { value: 8, color: 'var(--danger)' },
-    { value: 18, color: 'var(--line)' },
-  ]
-  let offset = 25
-  return (
-    <svg viewBox="0 0 140 140" style={{ width: 150, height: 150 }}>
-      <circle cx="70" cy="70" r="48" fill="none" stroke="var(--line-2)" strokeWidth="18" />
-      {segments.map((segment, index) => {
-        const dash = `${segment.value * 3.01} ${301 - segment.value * 3.01}`
-        const current = offset
-        offset -= segment.value
-        return (
-          <circle
-            key={index}
-            cx="70"
-            cy="70"
-            r="48"
-            fill="none"
-            stroke={segment.color}
-            strokeWidth="18"
-            strokeDasharray={dash}
-            strokeDashoffset={current * 3.01}
-            strokeLinecap="round"
-            transform="rotate(-90 70 70)"
-          />
-        )
-      })}
-      <text x="70" y="68" textAnchor="middle" style={{ fill: 'var(--ink)', fontSize: 24, fontWeight: 600, letterSpacing: '-0.03em' }}>42%</text>
-      <text x="70" y="86" textAnchor="middle" style={{ fill: 'var(--ink-3)', fontSize: 11 }}>dairy lead</text>
-    </svg>
-  )
-}
 
 export default function ReportsPage() {
   return (
-    <PageShell footerLeft="Gradient Cafe Portal - Reports" footerRight="Last export 10:30 IST - Saturday, 2 May">
-      <PageIntro
-        eyebrow="Reports - Procurement intelligence"
-        title="Know where the money"
-        em="moves before it leaks."
-        body={(
-          <>
-            Spend, supplier reliability, stock pressure, and outlet variance in one weekly operating view.{' '}
-            <b style={{ color: 'var(--ink)', fontWeight: 500 }}>₹4.82L tracked</b> this month with{' '}
-            <b style={{ color: 'var(--ink)', fontWeight: 500 }}>96.4% fulfilment</b> across preferred partners.
-          </>
-        )}
-        action={(
-          <>
-            <button className="tb-btn" style={{ height: 36 }}><Icon name="calendar" size={13} /> Last 30 days</button>
-            <button className="btn-primary"><Icon name="download" size={14} /> Export report</button>
-          </>
-        )}
-      />
+    <main className="cafe-ops-page">
+      <header className="cafe-ops-topbar">
+        <div><h1>Reports</h1><p>Spend trends, supplier performance, revenue signals, and export-ready reports.</p></div>
+        <label><Icon name="search" size={19} /><input placeholder="Search report, supplier, category..." /></label>
+        <button><Icon name="calendar" /> Last 30 Days</button>
+        <button><Icon name="download" /> Export</button>
+      </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, marginBottom: 20 }}>
-        <KpiCard title="Monthly spend" value="₹4.82L" trend="+8.4%" tone="ok" sub="vs last month" icon={<Icon name="chart" size={14} />} accentBar />
-        <KpiCard title="Avg. order value" value="₹12,680" trend="-4.2%" sub="basket discipline" icon={<Icon name="cart" size={14} />} />
-        <KpiCard title="Fulfilment rate" value="96.4%" trend="+1.1%" tone="ok" sub="last 30 days" icon={<Icon name="check" size={14} />} />
-        <KpiCard title="Exceptions" value="14" unit="events" trend="3 critical" tone="warn" sub="stock + billing" icon={<Icon name="warning" size={14} />} />
-      </div>
+      <section className="cafe-ops-stats">
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="chart" /></span><div><p>Monthly Spend</p><strong>Rs 4.82L</strong><small>+8.4% vs last month</small></div></div>
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="receipt" /></span><div><p>Avg Order Value</p><strong>Rs 12,680</strong><small>Basket discipline</small></div></div>
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="check" /></span><div><p>Fulfilment</p><strong>96.4%</strong><small>Last 30 days</small></div></div>
+        <div className="cafe-card cafe-ops-stat"><span><Icon name="warn" /></span><div><p>Exceptions</p><strong>14</strong><small>3 critical</small></div></div>
+      </section>
 
-      <StatStrip stats={[
-        { key: 'Top outlet', value: 'Indiranagar', sub: '₹2.18L spend' },
-        { key: 'Best supplier', value: '98.2%', sub: 'Nandini on-time' },
-        { key: 'Largest variance', value: '31%', sub: 'HSR packaging' },
-        { key: 'Potential saving', value: '₹18.4K', sub: 'bulk dairy quote' },
-      ]} />
+      <section className="cafe-ops-grid reports">
+        <div className="cafe-card cafe-ops-chart-card">
+          <div className="cafe-ops-section-head"><h2>Revenue Overview</h2><button>This Week</button></div>
+          <strong>Rs 1,24,580 <small>+ 12.5% vs last week</small></strong>
+          <div className="cafe-ops-area-chart"><span /><i /><b /></div>
+          <div className="cafe-ops-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 0.85fr', gap: 20, marginBottom: 20 }}>
-        <section className="card" style={{ padding: '22px 24px 18px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 16, marginBottom: 20 }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Spend trend</h3>
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>Weekly expenditure by purchase date</p>
-            </div>
-            <div style={{ display: 'flex', gap: 4, background: 'var(--surface-warm)', border: '1px solid var(--line)', padding: 3, borderRadius: 10 }}>
-              {['7D', '30D', '90D'].map((label, index) => (
-                <button key={label} style={{ height: 26, padding: '0 12px', borderRadius: 7, fontSize: 12, fontWeight: 500, background: index === 1 ? 'var(--surface)' : 'transparent', color: index === 1 ? 'var(--ink)' : 'var(--ink-3)', boxShadow: index === 1 ? 'rgba(28,27,25,0.08) 0 1px 2px' : 'none' }}>{label}</button>
-              ))}
-            </div>
+        <div className="cafe-card cafe-ops-chart-card">
+          <div className="cafe-ops-section-head"><h2>Sales by Category</h2><button>This Week</button></div>
+          <div className="cafe-ops-donut-wrap">
+            <div className="cafe-ops-donut"><span>Rs 1,24,580<small>Total Sales</small></span></div>
+            <div className="cafe-ops-legend">{CATEGORY_SPEND.map(([name, pct, value]) => <p key={name}><i />{name}<b>{pct}</b><strong>{value}</strong></p>)}</div>
           </div>
-          <MiniBars values={[42, 48, 39, 52, 61, 58, 67, 74, 69, 82, 78, 91, 88, 96]} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginTop: 18 }}>
-            {[
-              ['Highest week', '₹1.06L', 'dairy + coffee'],
-              ['Lowest week', '₹42K', 'holiday dip'],
-              ['Forecast', '₹5.14L', 'next 30 days'],
-            ].map(([key, value, sub]) => (
-              <div key={key} className="card warm" style={{ boxShadow: 'none', padding: 14 }}>
-                <div className="eyebrow">{key}</div>
-                <div className="tnum" style={{ marginTop: 5, fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>{value}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>{sub}</div>
-              </div>
-            ))}
-          </div>
-        </section>
+        </div>
 
-        <section className="card" style={{ padding: '22px 24px 18px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Spend mix</h3>
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--ink-3)' }}>Share by category</p>
-            </div>
-            <StatusBadge tone="accent">5 categories</StatusBadge>
+        <div className="cafe-card cafe-ops-board">
+          <div className="cafe-ops-section-head"><h2>Supplier Scorecard</h2><button>CSV</button></div>
+          <div className="cafe-ops-table-wrap">
+            <table className="cafe-ops-table">
+              <thead><tr><th>Supplier</th><th>Orders</th><th>On-time</th><th>Spend</th></tr></thead>
+              <tbody>{SUPPLIERS.map(row => <tr key={row[0]}><td><strong>{row[0]}</strong></td><td>{row[1]}</td><td><span className="status ok"><span className="dot" />{row[2]}</span></td><td><b>{row[3]}</b></td></tr>)}</tbody>
+            </table>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 14, alignItems: 'center' }}>
-            <Donut />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {CATEGORY_SPEND.map(item => (
-                <div key={item.label}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 12.5 }}>
-                    <span style={{ color: 'var(--ink-2)' }}>{item.label}</span>
-                    <span className="tnum" style={{ color: 'var(--ink)', fontWeight: 500 }}>{item.value}</span>
-                  </div>
-                  <div style={{ height: 5, background: 'var(--line-2)', borderRadius: 3, marginTop: 5, overflow: 'hidden' }}>
-                    <span style={{ display: 'block', width: `${item.pct}%`, height: '100%', background: item.color, borderRadius: 3 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 0.8fr', gap: 20 }}>
-        <section className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--line-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Supplier scorecard</h3>
-              <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>Spend, order count, on-time rate</div>
-            </div>
-            <button className="tb-btn"><Icon name="download" size={12} /> CSV</button>
-          </div>
-          <table className="orders-table">
-            <thead>
-              <tr>
-                <th>Supplier</th>
-                <th>Orders</th>
-                <th>On-time</th>
-                <th>Change</th>
-                <th style={{ textAlign: 'right' }}>Spend</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SUPPLIERS.map(supplier => (
-                <tr key={supplier.name}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <SupplierMark name={supplier.name} color={supplier.color} size={30} />
-                      <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--ink)' }}>{supplier.name}</span>
-                    </div>
-                  </td>
-                  <td className="tnum">{supplier.orders}</td>
-                  <td className="tnum"><StatusBadge tone={parseFloat(supplier.onTime) >= 94 ? 'ok' : 'warn'}>{supplier.onTime}</StatusBadge></td>
-                  <td className="tnum" style={{ color: supplier.delta.startsWith('+') ? 'var(--ok)' : 'var(--danger)', fontWeight: 500 }}>{supplier.delta}</td>
-                  <td className="tnum" style={{ textAlign: 'right', color: 'var(--ink)', fontWeight: 500 }}>{supplier.spend}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <section className="card" style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--line-2)' }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Report packs</h3>
-              <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>Ready for owner review</div>
-            </div>
-            {['Weekly ops digest', 'Supplier reliability', 'Billing ageing', 'Inventory variance'].map((name, index) => (
-              <div key={name} style={{ display: 'grid', gridTemplateColumns: '32px 1fr auto', gap: 12, alignItems: 'center', padding: '12px 22px', borderBottom: '1px solid var(--line-2)' }}>
-                <div style={{ width: 32, height: 32, borderRadius: 9, background: 'var(--surface-warm)', border: '1px solid var(--line)', color: 'var(--ink-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="file" size={14} /></div>
-                <div>
-                  <div style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 500 }}>{name}</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--ink-3)' }}>{index === 0 ? 'Updated today' : 'Updated this week'}</div>
-                </div>
-                <button className="tb-btn" style={{ height: 28 }}>Open</button>
-              </div>
-            ))}
-          </section>
-
-          <section className="card" style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '18px 22px 14px', borderBottom: '1px solid var(--line-2)' }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Signals</h3>
-              <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>What needs a decision</div>
-            </div>
-            {INSIGHTS.map(item => (
-              <div key={item.title} style={{ padding: '14px 22px', borderBottom: '1px solid var(--line-2)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
-                  <div className="eyebrow">{item.type}</div>
-                  <StatusBadge tone={item.tone}>{item.tone === 'ok' ? 'good' : item.tone === 'warn' ? 'watch' : 'act'}</StatusBadge>
-                </div>
-                <div style={{ fontSize: 13.5, color: 'var(--ink)', fontWeight: 600, marginBottom: 4 }}>{item.title}</div>
-                <p style={{ margin: 0, color: 'var(--ink-3)', fontSize: 12, lineHeight: 1.5 }}>{item.body}</p>
-              </div>
-            ))}
-          </section>
+        <aside className="cafe-card cafe-ops-panel">
+          <div className="cafe-ops-panel-image"><img src="/images/cafe-reports.jpg" alt="" /></div>
+          <h2>Signals</h2>
+          <p>Coffee spend is climbing faster than sales. Lock next month pricing before the seasonal quote revision.</p>
+          {['Best supplier: Nandini 98.2%', 'Potential saving: Rs 18.4K', 'HSR packaging drain +31%'].map(item => <div className="cafe-ops-mini" key={item}><Icon name="chart" size={15} /><span>{item}</span></div>)}
         </aside>
-      </div>
-    </PageShell>
+      </section>
+    </main>
   )
 }

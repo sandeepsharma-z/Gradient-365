@@ -1,18 +1,18 @@
 import type { Metadata } from 'next'
-import { Instrument_Sans, Instrument_Serif, JetBrains_Mono } from 'next/font/google'
+import { Poppins, Merriweather, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { CartProvider } from '@/context/cart-context'
 
-const instrumentSans = Instrument_Sans({
+const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-sans',
   display: 'swap',
 })
 
-const instrumentSerif = Instrument_Serif({
+const merriweather = Merriweather({
   subsets: ['latin'],
-  weight: ['400'],
+  weight: ['400', '700'],
   style: ['normal', 'italic'],
   variable: '--font-serif',
   display: 'swap',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${poppins.variable} ${merriweather.variable} ${jetbrainsMono.variable}`}>
       <body>
         <CartProvider>
           {children}
