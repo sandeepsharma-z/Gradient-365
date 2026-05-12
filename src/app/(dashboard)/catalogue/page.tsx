@@ -1,7 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { api } from '@/lib/api'
+import { useCart } from '@/context/cart-context'
 
 interface CatalogueItem {
   id: number
@@ -14,6 +16,10 @@ interface CatalogueItem {
   category: string
   description: string
   is_available: boolean
+  stock_status?: 'in' | 'low' | 'out' | 'back'
+  brand?: string
+  dish?: string
+  subcategory?: string
 }
 
 type IconName = 'search' | 'plus' | 'bag' | 'cart' | 'filter' | 'leaf' | 'star' | 'truck' | 'arrow'
@@ -41,12 +47,16 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
 let debounceTimer: ReturnType<typeof setTimeout>
 
 const demoItems: CatalogueItem[] = [
-  { id: 101, name: 'Saffron Latte Beans', unit: 'kg', price_per_unit: '1180', min_order_quantity: 2, supplier_account_id: 'SUP-01', supplier_name: 'Blue Tokai Roasters', category: 'Beverages', description: 'Premium roast for signature latte service.', is_available: true },
-  { id: 102, name: 'Whole Milk', unit: 'litre', price_per_unit: '68', min_order_quantity: 20, supplier_account_id: 'SUP-02', supplier_name: 'Nandini Dairy Kitchen', category: 'Dairy', description: 'Fresh full cream milk for daily cafe prep.', is_available: true },
-  { id: 103, name: 'Butter Croissant', unit: 'piece', price_per_unit: '42', min_order_quantity: 24, supplier_account_id: 'SUP-03', supplier_name: 'Hearth & Stone Bakery', category: 'Bakery', description: 'Flaky butter croissants for morning display.', is_available: true },
-  { id: 104, name: 'Organic Basil', unit: 'bunch', price_per_unit: '95', min_order_quantity: 8, supplier_account_id: 'SUP-04', supplier_name: 'Bloom Fresh Greens', category: 'Produce', description: 'Aromatic basil for sandwiches and salads.', is_available: true },
-  { id: 105, name: 'Blueberry Cheesecake', unit: 'slice', price_per_unit: '155', min_order_quantity: 12, supplier_account_id: 'SUP-05', supplier_name: 'Sweet Crumb Studio', category: 'Desserts', description: 'Rich cheesecake with blueberry topping.', is_available: false },
-  { id: 106, name: 'Cold Brew Bottle', unit: 'bottle', price_per_unit: '140', min_order_quantity: 18, supplier_account_id: 'SUP-01', supplier_name: 'Blue Tokai Roasters', category: 'Beverages', description: 'Ready-to-serve cold brew concentrate.', is_available: true },
+  { id: 101, name: 'Hazelnut Syrup 750ml', unit: 'bottle', price_per_unit: '850', min_order_quantity: 2, supplier_account_id: 'SUP-01', supplier_name: 'Monin India', category: 'Syrups', description: 'MRP visible to all cafes. Private deal available.', is_available: true, stock_status: 'in', brand: 'Monin' },
+  { id: 102, name: 'Caramel Syrup 750ml', unit: 'bottle', price_per_unit: '720', min_order_quantity: 2, supplier_account_id: 'SUP-02', supplier_name: 'Torani Supply', category: 'Syrups', description: 'Cafe can order at MRP or request deal.', is_available: true, stock_status: 'in', brand: 'Torani' },
+  { id: 103, name: 'Vanilla Syrup 750ml', unit: 'bottle', price_per_unit: '800', min_order_quantity: 2, supplier_account_id: 'SUP-01', supplier_name: 'Monin India', category: 'Syrups', description: 'Out of stock. Urgent supplier search suggested.', is_available: false, stock_status: 'out', brand: 'Monin' },
+  { id: 104, name: 'Espresso Beans 1kg', unit: 'kg', price_per_unit: '1200', min_order_quantity: 2, supplier_account_id: 'SUP-03', supplier_name: 'Blue Tokai Roasters', category: 'Coffee', description: 'Premium beans for espresso bar.', is_available: true, stock_status: 'in', brand: 'Lavazza' },
+  { id: 105, name: 'Robusta Powder 500g', unit: 'pack', price_per_unit: '480', min_order_quantity: 6, supplier_account_id: 'SUP-04', supplier_name: 'Bean Basket', category: 'Coffee', description: 'Low stock: 8 packs remaining.', is_available: true, stock_status: 'low', brand: 'Bru' },
+  { id: 106, name: 'Full Cream Milk 1L', unit: 'litre', price_per_unit: '68', min_order_quantity: 20, supplier_account_id: 'SUP-05', supplier_name: 'Nandini Dairy Kitchen', category: 'Dairy', description: 'Fresh full cream milk for daily cafe prep.', is_available: true, stock_status: 'in', brand: 'Amul' },
+  { id: 201, name: 'Frappe Base 1kg', unit: 'kg', price_per_unit: '940', min_order_quantity: 3, supplier_account_id: 'SUP-06', supplier_name: 'Caprimo Foods', category: 'Dish-wise', description: 'Cold Coffee > Frappe Base.', is_available: true, stock_status: 'in', brand: 'Caprimo', dish: 'Cold Coffee', subcategory: 'Frappe Base' },
+  { id: 202, name: 'Frappe Mix 800g', unit: 'pack', price_per_unit: '760', min_order_quantity: 4, supplier_account_id: 'SUP-01', supplier_name: 'Monin India', category: 'Dish-wise', description: 'Cold Coffee > Frappe Base. Currently OOS.', is_available: false, stock_status: 'out', brand: 'Monin', dish: 'Cold Coffee', subcategory: 'Frappe Base' },
+  { id: 203, name: 'Penne 500g', unit: 'pack', price_per_unit: '180', min_order_quantity: 10, supplier_account_id: 'SUP-07', supplier_name: 'Barilla Partner', category: 'Dish-wise', description: 'Pasta > Pasta Base.', is_available: true, stock_status: 'in', brand: 'Barilla', dish: 'Pasta', subcategory: 'Pasta Base' },
+  { id: 204, name: 'Fusilli 500g', unit: 'pack', price_per_unit: '160', min_order_quantity: 10, supplier_account_id: 'SUP-08', supplier_name: 'Del Monte Partner', category: 'Dish-wise', description: 'Pasta > Pasta Base. Low stock.', is_available: true, stock_status: 'low', brand: 'Del Monte', dish: 'Pasta', subcategory: 'Pasta Base' },
 ]
 
 const menuImages = [
@@ -86,12 +96,16 @@ function SkeletonCard() {
 }
 
 export default function CataloguePage() {
+  const { addItem, totalItems } = useCart()
   const [items, setItems] = useState<CatalogueItem[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [categories, setCategories] = useState<string[]>(['All'])
   const [showAddPanel, setShowAddPanel] = useState(false)
+  const [catalogueType, setCatalogueType] = useState<'A' | 'B'>('A')
+  const [notice, setNotice] = useState('')
+  const [dealItem, setDealItem] = useState<CatalogueItem | null>(null)
 
   function loadBrowse() {
     setLoading(true)
@@ -147,21 +161,47 @@ export default function CataloguePage() {
   }, [])
 
   const filteredItems = selectedCategory === 'All' ? items : items.filter(i => i.category === selectedCategory)
+  const typeItems = catalogueType === 'A' ? filteredItems.filter(item => item.category !== 'Dish-wise') : filteredItems.filter(item => item.category === 'Dish-wise')
   const availableCount = items.filter(item => item.is_available !== false).length
   const suppliersCount = useMemo(() => new Set(items.map(item => item.supplier_name)).size, [items])
+
+  function addToCart(item: CatalogueItem) {
+    if (item.is_available === false || item.stock_status === 'out') {
+      setNotice(`${item.name} is out of stock. Use urgent search to find alternate suppliers.`)
+      return
+    }
+    addItem({
+      id: item.id,
+      catalogue_item_id: item.id,
+      name: item.name,
+      unit: item.unit,
+      price_per_unit: parseFloat(item.price_per_unit || '0'),
+      supplier_account_id: item.supplier_account_id,
+      supplier_name: item.supplier_name,
+      quantity: item.min_order_quantity || 1,
+    })
+    setNotice(`${item.name} added to encrypted cart review.`)
+  }
+
+  function stockText(item: CatalogueItem) {
+    if (item.stock_status === 'out' || item.is_available === false) return 'Out of Stock'
+    if (item.stock_status === 'low') return 'Low Stock'
+    if (item.stock_status === 'back') return 'Back Soon'
+    return 'In Stock'
+  }
 
   return (
     <main className="cafe-menu-page">
       <header className="cafe-menu-topbar">
         <div>
           <h1>Menu</h1>
-          <p>Browse cafe inventory, supplier catalogue, and quick-add items.</p>
+          <p>Browse supplier catalogue Type A or Type B, view MRP, negotiate privately, and add available items to cart.</p>
         </div>
         <label className="cafe-menu-search">
           <Icon name="search" size={19} />
           <input value={query} onChange={event => handleQueryChange(event.target.value)} placeholder={`Search ${items.length} products...`} />
         </label>
-        <button className="cafe-menu-cart-link" onClick={() => setShowAddPanel(true)}><Icon name="plus" /> Add Item</button>
+        <Link className="cafe-menu-cart-link" href="/cart"><Icon name="cart" /> Cart {totalItems > 0 && <span>{totalItems}</span>}</Link>
       </header>
 
       <section className="cafe-menu-stats">
@@ -173,6 +213,8 @@ export default function CataloguePage() {
 
       <section className="cafe-card cafe-menu-board">
         <div className="cafe-menu-categories">
+          <button className={catalogueType === 'A' ? 'active' : ''} onClick={() => setCatalogueType('A')}>Type A - Simple</button>
+          <button className={catalogueType === 'B' ? 'active' : ''} onClick={() => setCatalogueType('B')}>Type B - Dish-wise</button>
           {categories.map(category => (
             <button key={category} className={selectedCategory === category ? 'active' : ''} onClick={() => setSelectedCategory(category)}>
               {category}
@@ -185,15 +227,17 @@ export default function CataloguePage() {
           <button><Icon name="filter" size={15} /> Filter</button>
           <button><Icon name="star" size={15} /> Recommended</button>
           <div />
-          <span>{filteredItems.length} items</span>
+          <span>{typeItems.length} items</span>
           <button onClick={() => setShowAddPanel(true)}><Icon name="plus" size={15} /> Add Menu Item</button>
         </div>
+
+        {notice && <div className="cafe-flow-notice">{notice}</div>}
 
         {loading ? (
           <div className="cafe-menu-grid">
             {Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} />)}
           </div>
-        ) : filteredItems.length === 0 ? (
+        ) : typeItems.length === 0 ? (
           <div className="cafe-menu-empty">
             <Icon name="search" size={34} />
             <strong>No items found</strong>
@@ -201,24 +245,32 @@ export default function CataloguePage() {
           </div>
         ) : (
           <div className="cafe-menu-grid">
-            {filteredItems.map((item, index) => (
-              <article className="cafe-menu-card" key={item.id}>
+            {typeItems.map((item, index) => (
+              <article className={`cafe-menu-card${item.is_available === false || item.stock_status === 'out' ? ' is-oos' : ''}`} key={item.id}>
                 <div className="cafe-menu-image">
                   <img src={imageFor(item, index)} alt="" />
-                  <span>{item.category || 'Menu'}</span>
+                  <span>{catalogueType === 'B' ? item.dish || 'Dish-wise' : item.category || 'Menu'}</span>
                 </div>
                 <div className="cafe-menu-card-body">
                   <div>
                     <h3>{item.name}</h3>
-                    <p>{item.description || item.supplier_name}</p>
+                    <p>{item.brand ? `${item.brand} · ` : ''}{item.description || item.supplier_name}</p>
                   </div>
                   <div className="cafe-menu-meta">
                     <span>{item.supplier_name}</span>
-                    <b>{fmtPrice(item.price_per_unit)} / {item.unit}</b>
+                    <b>MRP {fmtPrice(item.price_per_unit)} / {item.unit}</b>
+                  </div>
+                  <div className="cafe-flow-badges">
+                    <span className={item.stock_status === 'out' || item.is_available === false ? 'danger' : item.stock_status === 'low' ? 'warn' : 'ok'}>{stockText(item)}</span>
+                    <button onClick={() => setDealItem(item)}>Negotiate</button>
                   </div>
                   <div className="cafe-menu-actions">
                     <small>Min order {item.min_order_quantity || 1} {item.unit}</small>
-                    <button onClick={() => setShowAddPanel(true)}>Edit Item</button>
+                    {item.stock_status === 'out' || item.is_available === false ? (
+                      <Link href={`/urgent-search?q=${encodeURIComponent(item.name)}`}>Urgent Search</Link>
+                    ) : (
+                      <button onClick={() => addToCart(item)}>Add to Cart</button>
+                    )}
                   </div>
                 </div>
               </article>
@@ -267,6 +319,26 @@ export default function CataloguePage() {
             <div className="cafe-menu-add-actions">
               <button onClick={() => setShowAddPanel(false)}>Cancel</button>
               <button>Save Item</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dealItem && (
+        <div className="cafe-menu-modal-backdrop" onClick={() => setDealItem(null)}>
+          <div className="cafe-menu-add-panel" onClick={event => event.stopPropagation()}>
+            <div className="cafe-menu-add-head">
+              <div><span>Private negotiation</span><h2>Request Deal Price</h2></div>
+              <button onClick={() => setDealItem(null)}>×</button>
+            </div>
+            <div className="cafe-menu-form-grid">
+              <label>Item<input value={dealItem.name} readOnly /></label>
+              <label>Visible MRP<input value={fmtPrice(dealItem.price_per_unit)} readOnly /></label>
+              <label className="wide">Message<textarea defaultValue={`Requesting private cafe deal for ${dealItem.name}. Quantity: ${dealItem.min_order_quantity} ${dealItem.unit}.`} /></label>
+            </div>
+            <div className="cafe-menu-add-actions">
+              <button onClick={() => setDealItem(null)}>Cancel</button>
+              <button onClick={() => { setNotice(`Encrypted deal request sent to ${dealItem.supplier_name}.`); setDealItem(null) }}>Send Request</button>
             </div>
           </div>
         </div>

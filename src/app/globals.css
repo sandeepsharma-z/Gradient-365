@@ -4190,6 +4190,14 @@ a      { color: inherit; text-decoration: none; }
   opacity: 0.58;
 }
 
+.cafe-menu-card.is-oos {
+  opacity: 0.72;
+}
+
+.cafe-menu-card.is-oos img {
+  filter: grayscale(0.25) brightness(0.82);
+}
+
 .cafe-menu-image {
   position: relative;
   height: 158px;
@@ -4290,6 +4298,65 @@ a      { color: inherit; text-decoration: none; }
   color: var(--ink-4);
   background: var(--line-2);
   cursor: not-allowed;
+}
+
+.cafe-menu-actions a {
+  height: 32px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cafe-flow-notice {
+  margin: 14px 16px 0;
+  padding: 12px 14px;
+  border-radius: 13px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgba(255, 107, 0, 0.14);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cafe-flow-notice.danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: rgba(200, 61, 78, 0.16);
+}
+
+.cafe-flow-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cafe-flow-badges span,
+.cafe-flow-badges button {
+  min-height: 28px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cafe-flow-badges span.ok { color: var(--ok); background: var(--ok-soft); }
+.cafe-flow-badges span.warn { color: var(--warn); background: var(--warn-soft); }
+.cafe-flow-badges span.danger { color: var(--danger); background: var(--danger-soft); }
+
+.cafe-flow-badges button {
+  color: var(--accent);
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
 }
 
 .cafe-menu-empty {
@@ -6395,6 +6462,381 @@ a      { color: inherit; text-decoration: none; }
   box-shadow: 0 16px 34px -22px rgba(255, 90, 0, 0.8);
 }
 
+/* Flow pages: cart review and urgent search */
+.cafe-flow-page {
+  min-height: 100vh;
+  padding: 24px 30px 34px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 153, 0, 0.08), transparent 36%),
+    var(--bg);
+  color: var(--ink);
+}
+
+.cafe-flow-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.cafe-flow-topbar h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.cafe-flow-topbar p {
+  margin: 5px 0 0;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.cafe-flow-topbar a,
+.cafe-flow-empty a,
+.cafe-flow-summary a,
+.cafe-flow-actions a,
+.cafe-flow-actions button,
+.cafe-flow-supplier-foot button,
+.cafe-flow-search button,
+.cafe-flow-urgent-row button {
+  min-height: 42px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff9d00, #ff5a00);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 16px 34px -24px rgba(255, 90, 0, 0.85);
+}
+
+.cafe-flow-steps {
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cafe-flow-steps div {
+  min-height: 82px;
+  padding: 13px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+}
+
+.cafe-flow-steps div.active {
+  color: var(--ink);
+  border-color: rgba(255, 107, 0, 0.35);
+  background: var(--accent-soft);
+}
+
+.cafe-flow-steps span {
+  width: 10px;
+  height: 10px;
+  display: block;
+  border-radius: 999px;
+  background: currentColor;
+  margin-bottom: 9px;
+}
+
+.cafe-flow-steps strong,
+.cafe-flow-steps small {
+  display: block;
+}
+
+.cafe-flow-steps strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cafe-flow-steps small {
+  margin-top: 4px;
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.cafe-flow-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 16px;
+  align-items: start;
+}
+
+.cafe-flow-board,
+.cafe-flow-summary,
+.cafe-flow-state,
+.cafe-flow-empty {
+  border-radius: 18px;
+}
+
+.cafe-flow-supplier {
+  border-bottom: 1px solid var(--line-2);
+}
+
+.cafe-flow-supplier:last-child {
+  border-bottom: 0;
+}
+
+.cafe-flow-supplier-head,
+.cafe-flow-supplier-foot {
+  padding: 15px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cafe-flow-supplier-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cafe-flow-supplier-head span,
+.cafe-flow-supplier-foot span {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cafe-flow-cart-row {
+  padding: 13px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 110px 34px;
+  gap: 12px;
+  align-items: center;
+  border-top: 1px solid var(--line-2);
+}
+
+.cafe-flow-cart-row strong,
+.cafe-flow-cart-row small {
+  display: block;
+}
+
+.cafe-flow-cart-row strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cafe-flow-cart-row small {
+  margin-top: 3px;
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.cafe-flow-cart-row b {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.cafe-flow-cart-row > button {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.cafe-flow-qty {
+  display: grid;
+  grid-template-columns: 30px 36px 30px;
+  align-items: center;
+  justify-content: end;
+}
+
+.cafe-flow-qty button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
+}
+
+.cafe-flow-qty span {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cafe-flow-summary {
+  padding: 18px;
+}
+
+.cafe-flow-summary h2,
+.cafe-flow-state h2,
+.cafe-flow-empty h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.cafe-flow-summary p,
+.cafe-flow-state p,
+.cafe-flow-empty p {
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.cafe-flow-summary div {
+  padding: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--line-2);
+  font-size: 13px;
+}
+
+.cafe-flow-summary a {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.cafe-flow-state,
+.cafe-flow-empty {
+  min-height: 360px;
+  padding: 34px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.cafe-flow-state svg,
+.cafe-flow-empty svg {
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.cafe-flow-state.warn svg { color: var(--warn); }
+.cafe-flow-state.ok svg { color: var(--ok); }
+
+.cafe-flow-actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cafe-flow-actions button:last-child {
+  color: var(--ink-2);
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.cafe-flow-search {
+  padding: 18px;
+  border-radius: 18px;
+  margin-bottom: 14px;
+}
+
+.cafe-flow-search strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.cafe-flow-search > div {
+  min-height: 52px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 15px;
+  background: var(--surface-warm);
+  border: 1px solid rgba(255, 107, 0, 0.25);
+}
+
+.cafe-flow-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.cafe-flow-search p {
+  margin: 12px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.cafe-flow-search p button {
+  min-height: 28px;
+  margin: 4px 4px 0;
+  color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: none;
+}
+
+.cafe-flow-results {
+  display: grid;
+  gap: 10px;
+}
+
+.cafe-flow-urgent-row {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.cafe-flow-urgent-row > span {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--surface-warm);
+}
+
+.cafe-flow-urgent-row strong,
+.cafe-flow-urgent-row p,
+.cafe-flow-urgent-row b,
+.cafe-flow-urgent-row small {
+  display: block;
+}
+
+.cafe-flow-urgent-row strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cafe-flow-urgent-row p {
+  margin: 3px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.cafe-flow-urgent-row b {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.cafe-flow-urgent-row small {
+  margin-top: 3px;
+  color: var(--ok);
+  font-size: 11px;
+}
+
 @media (max-width: 1180px) {
   .cafe-ops-topbar {
     grid-template-columns: minmax(0, 1fr) auto auto;
@@ -6661,6 +7103,30 @@ a      { color: inherit; text-decoration: none; }
 
 .cafe-auth-register-form {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cafe-auth-type-toggle {
+  padding: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  border-radius: 14px;
+  background: var(--surface-warm);
+  border: 1px solid var(--line);
+}
+
+.cafe-auth-type-toggle button {
+  height: 40px;
+  border-radius: 11px;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cafe-auth-type-toggle button.active {
+  color: #fff;
+  background: linear-gradient(135deg, #ff9d00, #ff5a00);
+  box-shadow: 0 12px 24px -18px rgba(255, 90, 0, 0.8);
 }
 
 .cafe-auth-form label {

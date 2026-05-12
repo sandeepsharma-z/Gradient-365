@@ -23,6 +23,7 @@ function AuthIcon({ name, size = 18 }: { name: 'arrow' | 'coffee' | 'check' | 's
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ cafeName: '', ownerName: '', location: '', phone: '', email: '', password: '', confirmPassword: '' })
+  const [accountType, setAccountType] = useState<'cafe' | 'supplier'>('cafe')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
@@ -48,7 +49,7 @@ export default function RegisterPage() {
         email: form.email,
         password: form.password,
       })
-      setSuccess({ accountId: res.user?.accountId ?? 'CAFE-2026-00001', email: res.user?.email ?? form.email })
+      setSuccess({ accountId: res.user?.accountId ?? `${accountType === 'cafe' ? 'CAFE' : 'SUPP'}-2026-00001`, email: res.user?.email ?? form.email })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {
@@ -62,12 +63,12 @@ export default function RegisterPage() {
         <div className="cafe-auth-visual">
           <img src="/images/cafe-settings.jpg" alt="" />
           <div className="cafe-auth-visual-content">
-            <span><AuthIcon name="store" size={16} /> New cafe setup</span>
-            <h1>Launch your cafe workspace in minutes.</h1>
-            <p>Create an owner account, connect outlets, and start managing menu, orders, inventory, and reports.</p>
+            <span><AuthIcon name="store" size={16} /> Account registration</span>
+            <h1>Separate cafe and supplier workspaces.</h1>
+            <p>Choose account type, get a unique ID, verify email/SMS, and open the right dashboard.</p>
             <div className="cafe-auth-pills">
-              <b><AuthIcon name="check" size={14} /> 3 outlet ready</b>
-              <b><AuthIcon name="coffee" size={14} /> Cafe-first UI</b>
+              <b><AuthIcon name="check" size={14} /> CAFE-YYYY-#####</b>
+              <b><AuthIcon name="coffee" size={14} /> SUPP-YYYY-#####</b>
             </div>
           </div>
         </div>
@@ -76,7 +77,7 @@ export default function RegisterPage() {
           <Link href="/dashboard" className="cafe-auth-skip">Skip to dashboard <AuthIcon name="arrow" size={15} /></Link>
           <div className="cafe-auth-brand"><img src="/images/gradient-logo.png" alt="" /><span>Gradient 365</span></div>
           <h2>Create account</h2>
-          <p>Register your cafe owner workspace.</p>
+          <p>Register one location per account. Chain branches get separate IDs and private pricing.</p>
 
           {success ? (
             <div className="cafe-auth-success">
@@ -89,10 +90,15 @@ export default function RegisterPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="cafe-auth-form cafe-auth-register-form">
-              <label>Cafe Name<input value={form.cafeName} onChange={set('cafeName')} placeholder="Brew Haven Cafe" required /></label>
-              <label>Owner Name<input value={form.ownerName} onChange={set('ownerName')} placeholder="Full name" required /></label>
+              <div className="cafe-auth-type-toggle wide">
+                <button type="button" className={accountType === 'cafe' ? 'active' : ''} onClick={() => setAccountType('cafe')}>Cafe Account</button>
+                <button type="button" className={accountType === 'supplier' ? 'active' : ''} onClick={() => setAccountType('supplier')}>Supplier Account</button>
+              </div>
+              <label>{accountType === 'cafe' ? 'Cafe Name' : 'Business Name'}<input value={form.cafeName} onChange={set('cafeName')} placeholder={accountType === 'cafe' ? 'Brew Haven Cafe' : 'Monin India Supply'} required /></label>
+              <label>{accountType === 'cafe' ? 'Owner Name' : 'Contact Person'}<input value={form.ownerName} onChange={set('ownerName')} placeholder="Full name" required /></label>
               <label>Location<input value={form.location} onChange={set('location')} placeholder="Indiranagar, Bangalore" required /></label>
               <label>Phone<input type="tel" value={form.phone} onChange={set('phone')} placeholder="10-digit mobile number" required /></label>
+              {accountType === 'supplier' && <label className="wide">Product Categories<input placeholder="Syrups, Coffee, Dairy, Packaging" /></label>}
               <label className="wide">Email<input type="email" value={form.email} onChange={set('email')} placeholder="you@example.com" required /></label>
               <label>
                 Password

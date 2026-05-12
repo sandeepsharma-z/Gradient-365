@@ -22,6 +22,7 @@ const GROUPS = [
   { icon: 'store' as IconName, title: 'Outlet Defaults', status: '3 outlets configured', rows: ['Indiranagar opens at 07:30', 'Koramangala weekly billing enabled', 'HSR Layout packaging alerts on'] },
   { icon: 'bell' as IconName, title: 'Notifications', status: '12 rules active', rows: ['WhatsApp delivery alerts', 'Email invoice digest at 18:00', 'Critical stock SMS escalation'] },
   { icon: 'lock' as IconName, title: 'Security', status: 'Owner role active', rows: ['JWT cookie auth', 'Password changes require current password', 'Session timeout after inactivity'] },
+  { icon: 'store' as IconName, title: 'Chain Rules', status: 'One account per location', rows: ['Same brand name allowed across branches', 'Each branch has separate orders and pricing', 'Shared login across branches is blocked'] },
 ]
 
 export default function SettingsPage() {
